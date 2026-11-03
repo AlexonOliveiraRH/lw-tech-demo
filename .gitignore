@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.env
+.env.local
+*.egg
+
+# Poetry
+# Keep poetry.lock committed for reproducible demo pins
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Demo outputs (keep sample-reports/ and directory placeholders)
+sbom/out/*
+!sbom/out/.gitkeep
+artifacts/live/*
+!artifacts/live/.gitkeep
+!artifacts/sample-reports/**
+
+# Artifactory local data
+integration/artifactory/data/
+
+# Test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/

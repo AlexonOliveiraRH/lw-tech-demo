@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "vulnerable-fastapi"
+version = "0.1.0"
+description = "Demo FastAPI app with an intentional vulnerable urllib3 pin for Lightwell Part 2"
+authors = ["Lightwell SSA Demo <demo@dasmlab.local>"]
+readme = "README.md"
+packages = [{ include = "app" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.0"
+uvicorn = { extras = ["standard"], version = "^0.32.0" }
+httpx = "^0.27.0"
+# Intentional vulnerable pin for scanner before/after.
+# urllib3 1.26.18 is in the 1.26.x line with known CVE history used in demos;
+# Lightwell supplies a remediated artifact at the same compatible version.
+urllib3 = "1.26.18"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+pytest-asyncio = "^0.24.0"
+
+# Default: PyPI. Live demo adds a primary source via scripts/configure-poetry-source.sh
+# or by merging integration/poetry/pyproject.source.toml when USE_LIGHTWELL=true.
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

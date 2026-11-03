@@ -1,0 +1,13 @@
+# Merge into apps/vulnerable-fastapi/pyproject.toml for the live redirect.
+# Prefer Artifactory virtual so admins own the choke point.
+# scripts/configure-poetry-source.sh appends an equivalent block automatically.
+
+[[tool.poetry.source]]
+name = "lightwell"
+url = "http://localhost:8082/artifactory/api/pypi/pypi-virtual/simple"
+priority = "primary"
+
+# Optional: keep PyPI as explicit supplemental for non-eligible packages
+# [[tool.poetry.source]]
+# name = "PyPI"
+# priority = "supplemental"

@@ -1,0 +1,31 @@
+# SAMPLE / BACKUP report for live demo when Lightwell feed is unavailable.
+# Generated as a narrative stand-in: urllib3 findings cleared after remediated
+# wheel resolve via Artifactory → Lightwell. Replace with a live
+# ./scripts/scan-after.sh capture once LIGHTWELL_PYPI_* secrets are validated.
+#
+# Note: Remaining findings (e.g. starlette) are outside the Lightwell-eligible
+# pin for this demo beat — call those out as backlog / Lens VEX scope.
+
+Report Summary
+
+┌─────────────┬────────┬─────────────────┐
+│   Target    │  Type  │ Vulnerabilities │
+├─────────────┼────────┼─────────────────┤
+│ poetry.lock │ poetry │        3        │
+└─────────────┴────────┴─────────────────┘
+
+poetry.lock (poetry)
+====================
+Total: 3 (HIGH: 3, CRITICAL: 0)
+
+┌───────────┬────────────────┬──────────┬────────┬───────────────────┬───────────────┬──────────────────────────────────────────────────────────────┐
+│  Library  │ Vulnerability  │ Severity │ Status │ Installed Version │ Fixed Version │                            Title                             │
+├───────────┼────────────────┼──────────┼────────┼───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ starlette │ CVE-2025-62727 │ HIGH     │ fixed  │ 0.46.2            │ 0.49.1        │ starlette: Starlette DoS via Range header merging            │
+│           ├────────────────┤          │        │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│           │ CVE-2026-48818 │          │        │                   │ 1.1.0         │ starlette: Starlette: SSRF and NTLM credential theft via UNC │
+│           ├────────────────┤          │        │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
+│           │ CVE-2026-54283 │          │        │                   │ 1.3.1         │ starlette: Starlette: request.form() limits silently ignored │
+└───────────┴────────────────┴──────────┴────────┴───────────────────┴───────────────┴──────────────────────────────────────────────────────────────┘
+
+# urllib3 (1.26.18 Lightwell-remediated): 0 HIGH/CRITICAL findings in this sample.

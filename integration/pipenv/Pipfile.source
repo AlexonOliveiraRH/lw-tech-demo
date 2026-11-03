@@ -1,0 +1,25 @@
+# Example Pipfile [[source]] redirect for Pipenv teams.
+# Replace url with the Artifactory virtual simple index (or Lightwell direct as backup).
+
+[[source]]
+url = "http://localhost:8082/artifactory/api/pypi/pypi-virtual/simple"
+verify_ssl = true
+name = "artifactory-lightwell"
+
+# Keep a named public fallback only if policy requires it:
+# [[source]]
+# url = "https://pypi.org/simple"
+# verify_ssl = true
+# name = "pypi"
+
+[packages]
+fastapi = "*"
+uvicorn = {extras = ["standard"], version = "*"}
+httpx = "*"
+urllib3 = "==1.26.18"
+
+[dev-packages]
+pytest = "*"
+
+[requires]
+python_version = "3.12"

@@ -1,0 +1,94 @@
+name: demo-build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      use_lightwell:
+        description: "Resolve via PYPI_INDEX_URL (Artifactory/Lightwell)"
+        type: boolean
+        default: false
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/vulnerable-fastapi
+    env:
+      USE_LIGHTWELL: ${{ github.event.inputs.use_lightwell || vars.USE_LIGHTWELL || 'false' }}
+      PYPI_INDEX_URL: ${{ secrets.PYPI_INDEX_URL }}
+      LIGHTWELL_PYPI_URL: ${{ secrets.LIGHTWELL_PYPI_URL }}
+      LIGHTWELL_PYPI_TOKEN: ${{ secrets.LIGHTWELL_PYPI_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Configure Lightwell / Artifactory source
+        if: env.USE_LIGHTWELL == 'true'
+        working-directory: ${{ github.workspace }}
+        run: |
+          if [ -z "${PYPI_INDEX_URL}" ]; then
+            echo "USE_LIGHTWELL=true but PYPI_INDEX_URL secret is empty" >&2
+            exit 1
+          fi
+          ./scripts/configure-poetry-source.sh
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Show urllib3 pin
+        run: poetry show urllib3
+
+      - name: Run pytest
+        run: poetry run pytest -q
+
+  scan:
+    runs-on: ubuntu-latest
+    needs: pytest
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    defaults:
+      run:
+        working-directory: apps/vulnerable-fastapi
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry and project
+        run: |
+          pipx install poetry
+          poetry install --no-interaction
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b /usr/local/bin
+
+      - name: Trivy filesystem scan (demo gate)
+        working-directory: ${{ github.workspace }}
+        run: |
+          mkdir -p artifacts/live
+          trivy fs --scanners vuln --pkg-types library \
+            --severity HIGH,CRITICAL \
+            --format table \
+            --output artifacts/live/trivy-ci.txt \
+            apps/vulnerable-fastapi || true
+          cat artifacts/live/trivy-ci.txt
+
+      - name: Upload Trivy report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-ci
+          path: artifacts/live/trivy-ci.txt
+          if-no-files-found: ignore
