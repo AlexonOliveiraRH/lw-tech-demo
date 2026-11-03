@@ -1,22 +1,28 @@
-# Example Pipfile [[source]] redirect for Pipenv teams.
-# Replace url with the Artifactory virtual simple index (or Lightwell direct as backup).
+# Lightwell Console → Pipenv tab
+# ~/.netrc:
+#   machine packages.redhat.com login 11009103|dasmlwsvc password <token>
+# Install:
+#   pipenv install --index https://packages.redhat.com/lightwell/python/remediated/simple
 
 [[source]]
-url = "http://localhost:8082/artifactory/api/pypi/pypi-virtual/simple"
+url = "https://packages.redhat.com/lightwell/python/remediated/simple"
 verify_ssl = true
-name = "artifactory-lightwell"
+name = "lightwell"
 
-# Keep a named public fallback only if policy requires it:
-# [[source]]
-# url = "https://pypi.org/simple"
-# verify_ssl = true
-# name = "pypi"
+# Prefer Artifactory virtual once wired:
+# url = "http://localhost:8082/artifactory/api/pypi/pypi-virtual/simple"
+# name = "artifactory-lightwell"
+
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
 
 [packages]
 fastapi = "*"
 uvicorn = {extras = ["standard"], version = "*"}
 httpx = "*"
-urllib3 = "==1.26.18"
+sqlparse = {version = "==0.5.5", index = "lightwell"}
 
 [dev-packages]
 pytest = "*"

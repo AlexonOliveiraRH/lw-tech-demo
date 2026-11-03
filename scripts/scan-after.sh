@@ -13,16 +13,11 @@ if ! command -v trivy >/dev/null 2>&1; then
   exit 1
 fi
 
-if [[ -f "${ROOT}/.env" ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  source "${ROOT}/.env"
-  set +a
-fi
+# shellcheck disable=SC1091
+source "${ROOT}/scripts/load-lightwell-env.sh"
 
-if [[ "${USE_LIGHTWELL:-false}" != "true" || -z "${PYPI_INDEX_URL:-}" ]]; then
-  echo "Lightwell path not configured (USE_LIGHTWELL/PYPI_INDEX_URL)."
-  echo "Showing committed sample AFTER report for backup narration:"
+if [[ "${USE_LIGHTWELL:-false}" != "true" ]]; then
+  echo "USE_LIGHTWELL not true — showing sample AFTER report for backup narration:"
   if [[ -f "${SAMPLE}/trivy-after.txt" ]]; then
     cat "${SAMPLE}/trivy-after.txt"
   else
@@ -53,10 +48,10 @@ trivy fs --scanners vuln --pkg-types library \
   "${APP}" || true
 
 if command -v jq >/dev/null 2>&1 && [[ -f "${JSON}" ]]; then
-  echo "==> urllib3-related findings (summary)"
+  echo "==> sqlparse-related findings (summary)"
   jq -r '
     .Results[]? | .Vulnerabilities[]? |
-    select(.PkgName == "urllib3") |
+    select(.PkgName == "sqlparse") |
     "\(.VulnerabilityID) \(.Severity) \(.PkgName) \(.InstalledVersion)"
   ' "${JSON}" 2>/dev/null | sort -u | head -40 || echo "(none)"
 fi

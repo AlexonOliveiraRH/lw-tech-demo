@@ -18,7 +18,7 @@ Confirm: Artifactory sandbox or screen-share, Lightwell feed URL, FastAPI sample
 **Owner focus:** AppSec + Artifactory
 
 1. Open Lightwell PyPI feed in browser (`LIGHTWELL_PYPI_URL` / customer-ready Secure CDN docs).
-2. Pick the demo pin: **`urllib3==1.26.18`** (known CVE surface; Lightwell-eligible once feed validated — swap if customer prefers `cryptography` / `pydantic`).
+2. Pick the demo pin: **`sqlparse==0.5.5`** (on Python Validated as vulnerable; Lightwell **Remediated** serves `0.5.5+rhlw.1`). Feed also has PyPDF2 / tokenizers. Console has four repos — we stack **Python Remediated + Python Validated**.
 3. Show: patched artifact available for consume **without source changes**.
 4. Point out signing / metadata / security artifacts as available.
 
@@ -32,15 +32,18 @@ Confirm: Artifactory sandbox or screen-share, Lightwell feed URL, FastAPI sample
 
 **Owner focus:** Artifactory Admin
 
-### Artifactory
+### Artifactory (two Python remotes → one virtual)
 
-1. Admin → Repositories → **Remote**
-2. Package type: **PyPI**
-3. URL → Lightwell Secure CDN / PyPI endpoint
-4. Add remote to the **virtual** PyPI used by eng
-5. (Optional) Priority / include pattern for Lightwell-eligible packages
+Console has **four** repos (Python Remediated, Python Validated, Java Remediated, Java). Wire both Python remotes:
 
-Local rehearsal: [integration/artifactory/SETUP.md](integration/artifactory/SETUP.md) + `docker compose up`.
+1. Remote `pypi-lightwell-remediated` → `https://packages.redhat.com/api/pulp-content/lightwell/python/remediated/`
+2. Remote `pypi-lightwell-validated` → `https://packages.redhat.com/api/pulp-content/lightwell/python/validated/`
+3. Basic auth: `11009103|dasmlwsvc` + service account token
+4. Virtual `pypi-virtual` includes remediated **first**, then validated
+5. Developers point Poetry at the virtual only
+
+Local rehearsal: [integration/artifactory/SETUP.md](integration/artifactory/SETUP.md) + `./scripts/artifactory-bootstrap.sh`  
+Feeds explainer: [docs/lightwell-feeds.md](docs/lightwell-feeds.md)
 
 ### Developer redirect (show Poetry; mention others)
 
@@ -79,12 +82,11 @@ Helper: `./scripts/demo-build.sh`
 
 **Owner focus:** AppSec
 
-1. **Before:** `./scripts/scan-before.sh` — Trivy on vulnerable env / lock — critical CVE visible.
-2. **After:** `./scripts/scan-after.sh` — same scan path post-Lightwell resolve — CVE cleared for that component (or show committed sample delta under `artifacts/sample-reports/`).
+1. **Before:** `./scripts/scan-before.sh` — Trivy on public/`0.5.5` — sqlparse HIGH CVEs visible.
+2. **After:** `./scripts/scan-after.sh` — show `poetry show sqlparse` → **`0.5.5+rhlw.1`**. Trivy may still list the same CVE IDs (version fingerprint); Installed Version column shows the remediated local label.
+3. Bridge to segment 5: Lens VEX is what turns fingerprint noise into “triaged / not affected.”
 
-**Talk track:** “Your scanner. Your gate. Cleaner result — because the binary changed, not the policy engine.”
-
-**Note:** If a version-fingerprint scanner still flags a same-version patched wheel, call out Lens VEX (segment 5) as the noise-reduction proof and use Lightwell’s documented scanner-clean pair when available.
+**Talk track:** “Your scanner. Your gate. The binary changed — `+rhlw.1` — without a major-version rewrite. Lens closes the fingerprint gap with VEX.”
 
 ---
 

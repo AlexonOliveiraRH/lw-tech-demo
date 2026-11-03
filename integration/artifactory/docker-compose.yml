@@ -1,24 +1,49 @@
-# Local Artifactory OSS sandbox for Part 2 segment 2 rehearsal.
-# Default UI: http://localhost:8082  (admin / password — change on first login)
-#
-# Note: OSS features vary by version. Remote PyPI + virtual repos are the demo path.
-# Xray is intentionally out of scope for v1.
+# Artifactory OSS + Postgres for Part 2 segment 2 rehearsal.
+# UI: http://localhost:8082  (admin / password — change on first login)
 
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: lw-demo-artifactory-db
+    environment:
+      POSTGRES_DB: artifactory
+      POSTGRES_USER: artifactory
+      POSTGRES_PASSWORD: password
+    volumes:
+      - artifactory_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U artifactory -d artifactory"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   artifactory:
     image: releases-docker.jfrog.io/jfrog/artifactory-oss:7.104.7
     container_name: lw-demo-artifactory
+    depends_on:
+      postgres:
+        condition: service_healthy
     ports:
       - "8082:8082"
       - "8081:8081"
     volumes:
-      - ./data:/var/opt/jfrog/artifactory
+      - artifactory_data:/var/opt/jfrog/artifactory
     environment:
-      # First-boot friendly; change immediately in UI for anything beyond laptop demo
       EXTRA_JAVA_OPTIONS: "-Xms512m -Xmx2g"
+      JF_SHARED_SECURITY_MASTERKEY: "255cd15d1e9c62bd0469e0d14bd0ca04"
+      JF_SHARED_SECURITY_JOINKEY: "05d927567dd0fe8016fcf47fbe50e4b8"
+      JF_SHARED_DATABASE_TYPE: postgresql
+      JF_SHARED_DATABASE_URL: "jdbc:postgresql://postgres:5432/artifactory"
+      JF_SHARED_DATABASE_USERNAME: artifactory
+      JF_SHARED_DATABASE_PASSWORD: password
+      JF_SHARED_DATABASE_DRIVER: org.postgresql.Driver
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/artifactory/api/system/ping"]
       interval: 30s
       timeout: 10s
-      retries: 20
-      start_period: 120s
+      retries: 40
+      start_period: 300s
+
+volumes:
+  artifactory_data:
+  artifactory_pgdata:

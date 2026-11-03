@@ -1,31 +1,37 @@
-# SAMPLE / BACKUP report for live demo when Lightwell feed is unavailable.
-# Generated as a narrative stand-in: urllib3 findings cleared after remediated
-# wheel resolve via Artifactory → Lightwell. Replace with a live
-# ./scripts/scan-after.sh capture once LIGHTWELL_PYPI_* secrets are validated.
+# LIVE CAPTURE note (2026-11-03): after resolving sqlparse-0.5.5+rhlw.1 from
+# Lightwell Python Remediated, Trivy still lists the same CVE IDs because it
+# fingerprints the public version (0.5.5) and does not yet consume Lightwell
+# attestations/VEX. Demo talk track:
+#   1) Show poetry show sqlparse → 0.5.5+rhlw.1 (binary changed)
+#   2) Show wheel provenance on packages.redhat.com
+#   3) Upload SBOM to Lightwell Lens → VEX triage clears actionable noise
 #
-# Note: Remaining findings (e.g. starlette) are outside the Lightwell-eligible
-# pin for this demo beat — call those out as backlog / Lens VEX scope.
+# Installed Version column below proves the remediated local label is present.
 
 Report Summary
 
 ┌─────────────┬────────┬─────────────────┐
 │   Target    │  Type  │ Vulnerabilities │
 ├─────────────┼────────┼─────────────────┤
-│ poetry.lock │ poetry │        3        │
+│ poetry.lock │ poetry │        6        │
 └─────────────┴────────┴─────────────────┘
 
 poetry.lock (poetry)
 ====================
-Total: 3 (HIGH: 3, CRITICAL: 0)
+Total: 6 (HIGH: 6, CRITICAL: 0)
 
 ┌───────────┬────────────────┬──────────┬────────┬───────────────────┬───────────────┬──────────────────────────────────────────────────────────────┐
 │  Library  │ Vulnerability  │ Severity │ Status │ Installed Version │ Fixed Version │                            Title                             │
 ├───────────┼────────────────┼──────────┼────────┼───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
-│ starlette │ CVE-2025-62727 │ HIGH     │ fixed  │ 0.46.2            │ 0.49.1        │ starlette: Starlette DoS via Range header merging            │
+│ sqlparse  │ CVE-2026-54284 │ HIGH     │ fixed  │ 0.5.5+rhlw.1      │ 0.6.0         │ sqlparse DoS (version fingerprint — see Lens VEX)            │
+│           ├────────────────┤          │        │                   │               ├──────────────────────────────────────────────────────────────┤
+│           │ CVE-2026-59893 │          │        │                   │               │ sqlparse DoS (version fingerprint — see Lens VEX)            │
+│           ├────────────────┤          │        │                   │               ├──────────────────────────────────────────────────────────────┤
+│           │ CVE-2026-71491 │          │        │                   │               │ sqlparse DoS (version fingerprint — see Lens VEX)            │
+├───────────┼────────────────┤          │        ├───────────────────┼───────────────┼──────────────────────────────────────────────────────────────┤
+│ starlette │ CVE-2025-62727 │          │        │ 0.46.2            │ 0.49.1        │ starlette (out of Lightwell-eligible set for this demo)     │
 │           ├────────────────┤          │        │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
-│           │ CVE-2026-48818 │          │        │                   │ 1.1.0         │ starlette: Starlette: SSRF and NTLM credential theft via UNC │
+│           │ CVE-2026-48818 │          │        │                   │ 1.1.0         │ starlette                                                    │
 │           ├────────────────┤          │        │                   ├───────────────┼──────────────────────────────────────────────────────────────┤
-│           │ CVE-2026-54283 │          │        │                   │ 1.3.1         │ starlette: Starlette: request.form() limits silently ignored │
+│           │ CVE-2026-54283 │          │        │                   │ 1.3.1         │ starlette                                                    │
 └───────────┴────────────────┴──────────┴────────┴───────────────────┴───────────────┴──────────────────────────────────────────────────────────────┘
-
-# urllib3 (1.26.18 Lightwell-remediated): 0 HIGH/CRITICAL findings in this sample.

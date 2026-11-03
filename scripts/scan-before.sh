@@ -16,19 +16,21 @@ fi
 export USE_LIGHTWELL=false
 (
   cd "${APP}"
-  # Remove demo source block if a prior after-scan left it
-  if grep -q "# BEGIN LIGHTWELL DEMO SOURCE" pyproject.toml; then
-    python3 - <<'PY'
+  python3 - <<'PY'
+import re
 from pathlib import Path
 p = Path("pyproject.toml")
 text = p.read_text()
-start = text.find("# BEGIN LIGHTWELL DEMO SOURCE")
-end = text.find("# END LIGHTWELL DEMO SOURCE")
-if start != -1 and end != -1:
-    end = text.find("\n", end) + 1
-    p.write_text(text[:start] + text[end:])
+text = re.sub(
+    r"\n?# BEGIN LIGHTWELL DEMO SOURCE\n.*?# END LIGHTWELL DEMO SOURCE\n?",
+    "\n",
+    text,
+    flags=re.S,
+)
+text, _ = re.subn(r"^sqlparse\s*=\s*.*$", 'sqlparse = "0.5.5"', text, count=1, flags=re.M)
+p.write_text(text.rstrip() + "\n")
 PY
-  fi
+  poetry lock --no-interaction
   poetry install --no-interaction
 )
 
@@ -45,12 +47,12 @@ trivy fs --scanners vuln --pkg-types library \
   --format json --output "${JSON}" \
   "${APP}" || true
 
-# Highlight urllib3 findings for narration
+# Highlight sqlparse findings for narration
 if command -v jq >/dev/null 2>&1 && [[ -f "${JSON}" ]]; then
-  echo "==> urllib3-related findings (summary)"
+  echo "==> sqlparse-related findings (summary)"
   jq -r '
     .Results[]? | .Vulnerabilities[]? |
-    select(.PkgName == "urllib3") |
+    select(.PkgName == "sqlparse") |
     "\(.VulnerabilityID) \(.Severity) \(.PkgName) \(.InstalledVersion)"
   ' "${JSON}" 2>/dev/null | sort -u | head -40 || true
 fi

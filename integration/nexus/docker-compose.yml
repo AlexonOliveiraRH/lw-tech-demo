@@ -1,0 +1,19 @@
+# Optional Nexus Repository OSS for “we also support Nexus” demo beat.
+# Console Nexus tab: remote URL https://packages.redhat.com/lightwell/python/remediated/
+# Note: production Nexus path may require mTLS client certs — this sandbox is for UI shape only
+# unless RH provides demo certs. Prefer Artifactory for the working resolve path.
+
+services:
+  nexus:
+    image: sonatype/nexus3:3.75.1
+    container_name: lw-demo-nexus
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./data:/nexus-data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/service/rest/v1/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 30
+      start_period: 180s

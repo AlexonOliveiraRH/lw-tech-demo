@@ -36,3 +36,4 @@ integration/artifactory/data/
 htmlcov/
 .pytest_cache/
 .mypy_cache/
+integration/artifactory/secrets/

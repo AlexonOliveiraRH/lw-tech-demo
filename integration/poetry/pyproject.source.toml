@@ -1,13 +1,21 @@
-# Merge into apps/vulnerable-fastapi/pyproject.toml for the live redirect.
-# Prefer Artifactory virtual so admins own the choke point.
-# scripts/configure-poetry-source.sh appends an equivalent block automatically.
+# Dual Python feeds (direct Lightwell, no Artifactory yet):
+#   validated = primary catalog (~2400 packages)
+#   remediated = explicit source for eligible patched pins (sqlparse, …)
+#
+#   poetry config http-basic.lightwell-validated  '11009103|dasmlwsvc' '<token>'
+#   poetry config http-basic.lightwell-remediated '11009103|dasmlwsvc' '<token>'
+#
+# Live admin demo prefers ONE Artifactory virtual that stacks both remotes.
 
 [[tool.poetry.source]]
-name = "lightwell"
-url = "http://localhost:8082/artifactory/api/pypi/pypi-virtual/simple"
+name = "lightwell-validated"
+url = "https://packages.redhat.com/lightwell/python/validated/simple"
 priority = "primary"
 
-# Optional: keep PyPI as explicit supplemental for non-eligible packages
-# [[tool.poetry.source]]
-# name = "PyPI"
-# priority = "supplemental"
+[[tool.poetry.source]]
+name = "lightwell-remediated"
+url = "https://packages.redhat.com/lightwell/python/remediated/simple"
+priority = "explicit"
+
+# In pyproject dependencies when on the direct path:
+# sqlparse = { version = "0.5.5", source = "lightwell-remediated" }

@@ -2,7 +2,7 @@
 
 | File | Use |
 |------|-----|
-| `trivy-before.txt` / `.json` | Live capture from public PyPI vulnerable pin (`urllib3==1.26.18`) |
-| `trivy-after.txt` | Narrative backup showing **urllib3 CVE noise cleared** after Lightwell resolve |
+| `trivy-before.txt` / `.json` | Public PyPI `sqlparse==0.5.5` — HIGH CVEs |
+| `trivy-after.txt` | After Lightwell Remediated `0.5.5+rhlw.1` — version column shows `+rhlw.1`; CVE IDs may remain until Lens VEX |
 
-Replace `trivy-after.*` with a real `./scripts/scan-after.sh` output once Lightwell credentials are wired.
+Honest demo beat: binary/provenance change first, Lens VEX for scanner-noise elimination.

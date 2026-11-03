@@ -4,9 +4,14 @@ Sample FastAPI service for the Lightwell Part 2 demo.
 
 ## Why it is “vulnerable”
 
-`urllib3` is intentionally pinned to **`1.26.18`** so Trivy (and similar scanners) surface CVE risk on the public PyPI path. Lightwell supplies a remediated artifact at a compatible version/API so Poetry resolve + pytest stay green without rewriting application code.
+`sqlparse` is intentionally pinned to **`0.5.5`**.
 
-## Local
+| Resolve path | Artifact | Trivy |
+|--------------|----------|-------|
+| Public PyPI / **Python Validated** | `sqlparse-0.5.5` | HIGH CVEs (e.g. CVE-2026-54284 family) |
+| **Python Remediated** | `sqlparse-0.5.5+rhlw.1` | Remediated binary (same API) |
+
+## Local (before)
 
 ```bash
 poetry install
@@ -14,17 +19,17 @@ poetry run pytest
 poetry run uvicorn app.main:app --reload --port 8000
 ```
 
-## Lightwell / Artifactory path
+## Lightwell (after)
 
-From repo root:
+From repo root (loads `.env` + `/home/dasm/dasmlwsvc.token`):
 
 ```bash
 export USE_LIGHTWELL=true
-export PYPI_INDEX_URL="https://<artifactory>/artifactory/api/pypi/<virtual>/simple"
 ./scripts/configure-poetry-source.sh
 cd apps/vulnerable-fastapi
 poetry lock && poetry install
+poetry show sqlparse    # expect 0.5.5+rhlw.1 when remediated wins
 poetry run pytest
 ```
 
-Inspect resolved version: `GET /deps` or `poetry show urllib3`.
+`GET /deps` and `POST /v1/sql/preview` for live narration.
