@@ -1,7 +1,6 @@
-# Lightwell Part 2 Technical Demo Kit
+# Lightwell Python Focused Technical Demo
 
-**Audience:** salesperson / SSA  
-**Goal:** show CVE noise → remediate via the **Lightwell Network** → prove it in Lens — no app rewrite.
+**Goal:** demonstrate ease of implementation with Lightwell and the before/after effects — **no application rewrite** — and prove it in **Lens**.
 
 Repo: [dasmlab/lw-tech-demo](https://github.com/dasmlab/lw-tech-demo)
 
@@ -11,8 +10,8 @@ Repo: [dasmlab/lw-tech-demo](https://github.com/dasmlab/lw-tech-demo)
 
 In **Actions** you may see four names. **Only use the numbered ones:**
 
-| Workflow | Sales? | What it does |
-|----------|--------|----------------|
+| Workflow | Use? | What it does |
+|----------|------|----------------|
 | **1 · Scan (vulnerable)** | ✅ Step 1 | Public pins + scanners + **SBOM before** + visual report |
 | **2 · Remediate (Lightwell)** | ✅ Step 2 | Lightwell feeds → `+rhlw.1` + **SBOM after** + visual report |
 | `z · CI (maintainers)` | ❌ ignore | PR/push smoke test |
@@ -25,11 +24,14 @@ In **Actions** you may see four names. **Only use the numbered ones:**
 ### 1 — Scan (no Lightwell login)
 
 1. [Actions → **1 · Scan (vulnerable)**](https://github.com/dasmlab/lw-tech-demo/actions/workflows/01-scan.yml) → **Run workflow**
-2. Open the green run → **Summary** (glanceable report in the page)
-3. Artifacts → **`scan-before`** → download **`demo-report-before.html`** → open in a browser (screen-share this, not the logs)
-4. Same artifact → **`sbom-before.cdx.json`** → upload to **Lightwell Lens** (show hooks / catch)
+2. When the run is green, open it, scroll to the bottom, and **download the artifacts** (`scan-before`)
+3. Unzip the download, then:
+   - Open **`artifacts/live/demo-report-before.html`** in a browser
+   - Upload **`artifacts/live/sbom-before.cdx.json`** to **Lightwell Lens**
 
-**Say:** “These three packages are exactly what Lightwell remediates — public builds light up scanners and Lens.”
+**Notable**
+
+- These three packages are exactly what Lightwell remediates — public builds light up scanners and Lens.
 
 ### 2 — Remediate (paste token for this run only)
 
@@ -37,10 +39,10 @@ In **Actions** you may see four names. **Only use the numbered ones:**
 2. Required inputs (not stored in this public repo):
    - **lightwell_user** — `orgId|service-account-name` (shape: `11009103|dasmlwsvc`)
    - **lightwell_token** — service-account token from Lightwell Console
-3. Open **Summary** on the green run
-4. Artifacts → **`remediate-proof`** → **`demo-report-after.html`** (browser) + **`sbom-after.cdx.json`** → Lens
+3. When the run is green, open it, scroll to the bottom, and **download the artifacts** (`remediate-proof`), then unzip
+4. Open **`artifacts/live/demo-report-after.html`** in a browser, and upload **`artifacts/live/sbom-after.cdx.json`** to **Lens** to see the difference
 
-**Say / point at:**
+**Notable**
 
 - Versions are **`+rhlw.1`** from the **Lightwell Network**
 - **Remediated** = sqlparse / PyPDF2 / tokenizers  
@@ -68,6 +70,7 @@ Console has four repos; this demo uses the **two Python** feeds. Details: [docs/
 | Item | When |
 |------|------|
 | [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md) | Fuller talk track |
+| [docs/HOW_TO_RUN_DEMO_SLIDES.md](docs/HOW_TO_RUN_DEMO_SLIDES.md) | 6-slide “how to run” outline |
 | [sbom/README.md](sbom/README.md) | Lens upload notes |
 | [integration/artifactory](integration/artifactory/) | Local Artifactory sandbox |
 
@@ -75,4 +78,4 @@ Console has four repos; this demo uses the **two Python** feeds. Details: [docs/
 
 ## Secrets
 
-Step 2 takes the token **in the workflow form** so forks and sales laptops stay clean — nothing Lightwell-secret is committed here.
+Step 2 takes the token **in the workflow form** so forks stay clean — nothing Lightwell-secret is committed here.
