@@ -14,7 +14,7 @@ permissions:
 jobs:
   test:
     name: Public Poetry + pytest
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: apps/vulnerable-fastapi

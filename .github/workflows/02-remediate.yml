@@ -1,7 +1,8 @@
-# Sales step 2 — paste Lightwell user + token for THIS RUN only (not stored in the repo).
-# Proves packages came from Lightwell Network (+rhlw.1) and CVE records no longer bind.
+# Step 2 — paste Lightwell user + token for THIS RUN only (not stored in the repo).
+# Default runner: GitHub-hosted (ubuntu-latest) so forks / any entitled user can run.
 
 name: "2 · Remediate (Lightwell)"
+run-name: "2 · Remediate — @${{ github.actor }} · ${{ inputs.lightwell_user }}"
 
 on:
   workflow_dispatch:
@@ -14,6 +15,14 @@ on:
         description: "REQUIRED — Lightwell service-account token for this run only"
         type: string
         required: true
+      runner:
+        description: "Runner (default GitHub-hosted for self-service; self-hosted optional for maintainers)"
+        type: choice
+        required: true
+        default: ubuntu-latest
+        options:
+          - ubuntu-latest
+          - self-hosted
 
 permissions:
   contents: read
@@ -27,7 +36,7 @@ env:
 jobs:
   remediate:
     name: Remediate via Lightwell Network
-    runs-on: [self-hosted]
+    runs-on: ${{ inputs.runner }}
     steps:
       - uses: actions/checkout@v4
 
@@ -37,6 +46,19 @@ jobs:
 
       - name: Mask token
         run: echo "::add-mask::${LIGHTWELL_PYPI_TOKEN}"
+
+      - name: Who ran this
+        run: |
+          {
+            echo "## Run identity"
+            echo ""
+            echo "| | |"
+            echo "|--|--|"
+            echo "| GitHub actor | \`@${{ github.actor }}\` |"
+            echo "| Lightwell user | \`${{ inputs.lightwell_user }}\` |"
+            echo "| Runner | \`${{ inputs.runner }}\` |"
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install tools
         run: WITH_TRIVY=true ./scripts/ci-install-tools.sh
@@ -94,7 +116,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          # Flat zip root: demo-report-after.html + sbom-after.cdx.json (no nested paths)
+          # Flat zip root: demo-report-after.html + sbom-after.cdx.json
           name: remediate-proof
           path: artifacts/bundle-after/
           if-no-files-found: warn

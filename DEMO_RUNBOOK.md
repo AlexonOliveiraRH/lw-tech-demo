@@ -3,7 +3,8 @@
 **Time:** ~10–15 minutes  
 **You need:** browser + Lightwell service account (`orgId|name` + token) + Lens URL
 
-In Actions: run **only** `1 · Scan` then `2 · Remediate`. Ignore anything named `z · …`.
+In Actions: run **only** `1 · Scan` then `2 · Remediate` (runner default `ubuntu-latest`). Ignore anything named `z · …`.  
+Run titles show `@github-user` (and Lightwell user on step 2). Fork + enable Actions works without dasmlab runners.
 
 ---
 

@@ -1,10 +1,21 @@
-# Sales step 1 — no Lightwell auth required.
-# Shows CVE noise on the public pins + CycloneDX SBOM for Lens hooks demo.
+# Step 1 — no Lightwell auth required.
+# Public pins + scanners + CycloneDX SBOM for Lens + visual report.
+# Default runner: GitHub-hosted (ubuntu-latest) so forks / any entitled user can run.
 
 name: "1 · Scan (vulnerable)"
+run-name: "1 · Scan — @${{ github.actor }}"
 
 on:
   workflow_dispatch:
+    inputs:
+      runner:
+        description: "Runner (default GitHub-hosted for self-service; self-hosted optional for maintainers)"
+        type: choice
+        required: true
+        default: ubuntu-latest
+        options:
+          - ubuntu-latest
+          - self-hosted
 
 permissions:
   contents: read
@@ -12,7 +23,7 @@ permissions:
 jobs:
   scan:
     name: Scan vulnerable pins
-    runs-on: [self-hosted]
+    runs-on: ${{ inputs.runner }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -37,7 +48,7 @@ jobs:
         run: ./scripts/stage-artifact-bundle.sh before
       - uses: actions/upload-artifact@v4
         with:
-          # Flat zip root: demo-report-before.html + sbom-before.cdx.json (no nested paths)
+          # Flat zip root: demo-report-before.html + sbom-before.cdx.json
           name: scan-before
           path: artifacts/bundle-before/
           if-no-files-found: warn

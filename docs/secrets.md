@@ -2,36 +2,45 @@
 
 Do **not** commit credentials. See [lightwell-feeds.md](lightwell-feeds.md) for the four Console repositories.
 
-## GitHub Actions UI (public demo)
+## Primary demo path (self-service)
 
-Preferred path: **Actions → Lightwell Demo → Run workflow**.
+Use the numbered workflows only:
 
-| Input | When required | Notes |
-|-------|---------------|-------|
-| `pipeline` | always | `scan-before` / `build` / `scan-after` / `test` / `scan-build` / `full` / `publish` |
-| `lightwell_user` | Lightwell stages | `orgId\|service-account-name` |
-| `lightwell_token` | Lightwell stages | Pasted per run; masked in logs via `::add-mask::` |
-| `use_lightwell_for_build` | `build` / `test` | Default `true` |
+| Workflow | Auth | Runner |
+|----------|------|--------|
+| **[1 · Scan (vulnerable)](../.github/workflows/01-scan.yml)** | none | default `ubuntu-latest` (optional `self-hosted`) |
+| **[2 · Remediate (Lightwell)](../.github/workflows/02-remediate.yml)** | paste `lightwell_user` + `lightwell_token` per run | default `ubuntu-latest` (optional `self-hosted`) |
 
-Lightwell stages: `scan-after`, `scan-build`, `full`, `publish`, and `build`/`test` when the checkbox is on.
+Run titles include the GitHub actor automatically (`@you`) and, for Remediate, the Lightwell username — no extra “who are you” field.
 
-**Resolution order:** workflow input → repository secret (`LIGHTWELL_PYPI_USER` / `LIGHTWELL_PYPI_TOKEN`).  
-If both are empty on a Lightwell stage, the run fails fast in **Resolve credentials**.
+| Input | Workflow | Notes |
+|-------|----------|-------|
+| `lightwell_user` | 2 | `orgId\|service-account-name` from console.redhat.com |
+| `lightwell_token` | 2 | Pasted per run; masked in logs via `::add-mask::` |
+| `runner` | 1 and 2 | `ubuntu-latest` (default) or `self-hosted` |
 
-> Workflow dispatch inputs are visible to anyone who can see the Actions run metadata. Prefer short-lived tokens for public demos; rotate after the engagement if needed.
+> Workflow dispatch **inputs** (including the token) are visible to anyone who can see the Actions run metadata. Prefer short-lived tokens; rotate after the engagement if needed.
 
-## Repository secrets (optional, maintainers)
+**Fork path (recommended for most people):** fork this repo → enable Actions → run **1** then **2** on your fork with your Lightwell SA. No dasmlab secrets required.
+
+## Optional: advanced composite
+
+**Actions → `z · Advanced (composite)`** is for maintainers / power users (`scan-build`, `full`, etc.). It can fall back to repository secrets when inputs are blank. Prefer **1** / **2** for demos.
+
+## Repository secrets (optional, maintainers only)
+
+Used only by the advanced composite when inputs are left blank — **not** by sales steps 1 / 2.
 
 | Secret | Purpose |
 |--------|---------|
-| `LIGHTWELL_PYPI_USER` | Default username when input left blank |
-| `LIGHTWELL_PYPI_TOKEN` | Default token when input left blank |
+| `LIGHTWELL_PYPI_USER` | Default username when advanced input left blank |
+| `LIGHTWELL_PYPI_TOKEN` | Default token when advanced input left blank |
 | `PYPI_INDEX_URL` | Optional Artifactory virtual simple index |
 
 ```bash
 # Example (maintainers only — never commit values)
 gh secret set LIGHTWELL_PYPI_USER --body '11009103|dasmlwsvc' --repo dasmlab/lw-tech-demo
-gh secret set LIGHTWELL_PYPI_TOKEN < /home/dasm/dasmlwsvc.token --repo dasmlab/lw-tech-demo
+gh secret set LIGHTWELL_PYPI_TOKEN < /path/to/token --repo dasmlab/lw-tech-demo
 ```
 
 ## Local env
@@ -39,7 +48,7 @@ gh secret set LIGHTWELL_PYPI_TOKEN < /home/dasm/dasmlwsvc.token --repo dasmlab/l
 | Variable | Example | Notes |
 |----------|---------|-------|
 | `LIGHTWELL_PYPI_USER` | `11009103\|dasmlwsvc` | Format `<orgId>\|<sa>` |
-| `LIGHTWELL_TOKEN_FILE` | `/home/dasm/dasmlwsvc.token` | Preferred locally |
+| `LIGHTWELL_TOKEN_FILE` | `/path/to/token` | Preferred locally |
 | `LIGHTWELL_PYPI_TOKEN` | _(token)_ | Or set directly |
 | `USE_LIGHTWELL` | `true` | Enables Lightwell Poetry sources |
 

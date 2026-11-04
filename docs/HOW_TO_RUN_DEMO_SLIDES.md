@@ -43,7 +43,8 @@ Console: https://console.redhat.com (Lightwell entitlement → service account)
 **Setup (once)**
 
 - Entitlement on **console.redhat.com** → create Lightwell **service account** → copy `orgId|name` + token  
-- Optional: fork `dasmlab/lw-tech-demo` (token is pasted **per run**, not stored in the public repo)
+- Fork this repo (or run here if you have Actions access) — default runner is **GitHub-hosted** `ubuntu-latest`  
+- Token is pasted **per run**, not stored in the public repo; run title shows `@github-user`
 
 **The integration story**
 
