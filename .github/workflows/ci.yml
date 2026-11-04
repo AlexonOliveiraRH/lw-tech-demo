@@ -1,7 +1,7 @@
 # Always-on CI: public PyPI path only (no Lightwell token required).
 # Demo stages with Lightwell live under Actions → "Lightwell Demo".
 
-name: CI
+name: "z · CI (maintainers)"
 
 on:
   push:

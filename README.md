@@ -1,68 +1,78 @@
 # Lightwell Part 2 Technical Demo Kit
 
-**Audience:** salesperson / SSA running a live AppSec + Artifactory demo  
-**Goal:** click through GitHub Actions, show CVE noise, then remediate via the **Lightwell Network** — no app rewrite.
+**Audience:** salesperson / SSA  
+**Goal:** show CVE noise → remediate via the **Lightwell Network** → prove it in Lens — no app rewrite.
 
-Public repo: [dasmlab/lw-tech-demo](https://github.com/dasmlab/lw-tech-demo)
-
----
-
-## Sales click-path (do this)
-
-### Step 1 — Scan (no login to Lightwell)
-
-1. Open **[Actions → 1 · Scan (vulnerable)](https://github.com/dasmlab/lw-tech-demo/actions/workflows/01-scan.yml)**
-2. Click **Run workflow** → **Run workflow**
-3. When green, open the run → **Job summary** and artifact **`scan-before`**
-4. Download **`sbom-before.cdx.json`** → upload to **Lightwell Lens** to show the catch / hooks on the public pins
-5. **Say:** “Same three packages Lightwell remediates today — sqlparse, PyPDF2, tokenizers — scanners *and* Lens light up on the public builds.”
-
-### Step 2 — Remediate (paste token for this run only)
-
-1. Open **[Actions → 2 · Remediate (Lightwell)](https://github.com/dasmlab/lw-tech-demo/actions/workflows/02-remediate.yml)**
-2. Click **Run workflow**
-3. Fill in (required every time — not stored in this public repo):
-   - **lightwell_user** — `orgId|service-account-name` (example shape: `11009103|dasmlwsvc`)
-   - **lightwell_token** — service account token from Lightwell Console
-4. Run → open **Job summary**
-5. **Say / point at:**
-   - Versions are now **`+rhlw.1`** → built by the **Lightwell Network**
-   - **Remediated** feed = those three patched packages  
-   - **Validated** feed = the rest of the RH-built catalog (FastAPI, etc.)
-   - pip-audit no longer treats them as the public vulnerable PyPI artifacts  
-   - Tests still pass — **no application rewrite**
-6. Download **`sbom-after.cdx.json`** from **`remediate-proof`** → upload to Lens as the clean / remediated SBOM
-
-Artifacts to screen-share: **`remediate-proof`** → `lightwell-proof.md` + `sbom-after.cdx.json`
+Repo: [dasmlab/lw-tech-demo](https://github.com/dasmlab/lw-tech-demo)
 
 ---
 
-## What the app is pinning
+## What you run (only two workflows)
 
-| Package | Public pin (Step 1) | After Lightwell (Step 2) |
-|---------|---------------------|---------------------------|
-| sqlparse | `0.5.5` | `0.5.5+rhlw.1` from **Remediated** |
-| PyPDF2 | `3.0.1` | `3.0.1+rhlw.1` from **Remediated** |
-| tokenizers | `0.23.1` | `0.23.1+rhlw.1` from **Remediated** |
-| FastAPI / httpx / … | public or Validated | **Validated** catalog |
+In **Actions** you may see four names. **Only use the numbered ones:**
 
-Lightwell Console exposes **four** repos (Python Remediated, Python Validated, Java Remediated, Java). This demo uses the **two Python** feeds. Details: [docs/lightwell-feeds.md](docs/lightwell-feeds.md)
+| Workflow | Sales? | What it does |
+|----------|--------|----------------|
+| **1 · Scan (vulnerable)** | ✅ Step 1 | Public pins + scanners + **SBOM before** + visual report |
+| **2 · Remediate (Lightwell)** | ✅ Step 2 | Lightwell feeds → `+rhlw.1` + **SBOM after** + visual report |
+| `z · CI (maintainers)` | ❌ ignore | PR/push smoke test |
+| `z · Advanced (composite)` | ❌ ignore | Power-user pipeline |
 
 ---
 
-## Optional deeper toolkit
+## Steps
+
+### 1 — Scan (no Lightwell login)
+
+1. [Actions → **1 · Scan (vulnerable)**](https://github.com/dasmlab/lw-tech-demo/actions/workflows/01-scan.yml) → **Run workflow**
+2. Open the green run → **Summary** (glanceable report in the page)
+3. Artifacts → **`scan-before`** → download **`demo-report-before.html`** → open in a browser (screen-share this, not the logs)
+4. Same artifact → **`sbom-before.cdx.json`** → upload to **Lightwell Lens** (show hooks / catch)
+
+**Say:** “These three packages are exactly what Lightwell remediates — public builds light up scanners and Lens.”
+
+### 2 — Remediate (paste token for this run only)
+
+1. [Actions → **2 · Remediate (Lightwell)**](https://github.com/dasmlab/lw-tech-demo/actions/workflows/02-remediate.yml) → **Run workflow**
+2. Required inputs (not stored in this public repo):
+   - **lightwell_user** — `orgId|service-account-name` (shape: `11009103|dasmlwsvc`)
+   - **lightwell_token** — service-account token from Lightwell Console
+3. Open **Summary** on the green run
+4. Artifacts → **`remediate-proof`** → **`demo-report-after.html`** (browser) + **`sbom-after.cdx.json`** → Lens
+
+**Say / point at:**
+
+- Versions are **`+rhlw.1`** from the **Lightwell Network**
+- **Remediated** = sqlparse / PyPDF2 / tokenizers  
+- **Validated** = rest of the catalog (FastAPI, …)
+- Public CVE records no longer bind to these builds  
+- Tests pass — **no application rewrite**
+
+---
+
+## Pins
+
+| Package | Step 1 (public) | Step 2 (Lightwell) |
+|---------|-----------------|--------------------|
+| sqlparse | `0.5.5` | `0.5.5+rhlw.1` · Remediated |
+| PyPDF2 | `3.0.1` | `3.0.1+rhlw.1` · Remediated |
+| tokenizers | `0.23.1` | `0.23.1+rhlw.1` · Remediated |
+| FastAPI / httpx / … | public | **Validated** |
+
+Console has four repos; this demo uses the **two Python** feeds. Details: [docs/lightwell-feeds.md](docs/lightwell-feeds.md)
+
+---
+
+## Optional
 
 | Item | When |
 |------|------|
-| [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md) | Full 20‑minute talk track |
-| [Lightwell Demo](https://github.com/dasmlab/lw-tech-demo/actions/workflows/demo.yml) workflow | Composite `scan-build` / `full` for power users |
-| [integration/artifactory](integration/artifactory/) | Local Artifactory OSS sandbox (Pro needed for remotes) |
-| Local scripts | `./scripts/scan-before.sh` then `USE_LIGHTWELL=true ./scripts/scan-after.sh` |
-
-PR/push **CI** only runs public Poetry + pytest (no token).
+| [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md) | Fuller talk track |
+| [sbom/README.md](sbom/README.md) | Lens upload notes |
+| [integration/artifactory](integration/artifactory/) | Local Artifactory sandbox |
 
 ---
 
-## Secrets note
+## Secrets
 
-Step 2 asks for the token **in the workflow form** so forks and sales laptops stay agnostic — nothing Lightwell-secret is committed here. Maintainers may still set repo secrets for other composite workflows; the Remediate sales job intentionally uses the pasted inputs for that run only.
+Step 2 takes the token **in the workflow form** so forks and sales laptops stay clean — nothing Lightwell-secret is committed here.

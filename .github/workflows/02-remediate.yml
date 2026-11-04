@@ -85,10 +85,16 @@ jobs:
           SBOM_SKIP_INSTALL: "1"
         run: ./scripts/sbom-generate.sh
 
+      - name: Visual demo report
+        working-directory: apps/vulnerable-fastapi
+        run: poetry run python ../../scripts/render-demo-report.py after
+
       - uses: actions/upload-artifact@v4
         with:
           name: remediate-proof
           path: |
+            artifacts/live/demo-report-after.html
+            artifacts/live/demo-report-after.md
             artifacts/live/lightwell-proof.md
             artifacts/live/pip-audit-after.txt
             artifacts/live/trivy-after.txt

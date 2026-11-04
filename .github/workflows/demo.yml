@@ -1,13 +1,13 @@
 # Lightwell Part 2 — click-to-run demo pipeline (GitHub Actions UI)
 #
-# Actions → Lightwell Demo → Run workflow
+# Actions → z · Advanced (composite) → Run workflow (not the sales path)
 #   pipeline: scan-before | build | scan-after | test | scan-build | full | publish
 #   lightwell_user / lightwell_token: required for Lightwell stages unless repo secrets exist
 #
 # Self-hosted runners (dasmlab). Forks: paste orgId|sa + token in the form.
 # Maintainers: set LIGHTWELL_PYPI_USER + LIGHTWELL_PYPI_TOKEN secrets and leave inputs blank.
 
-name: Lightwell Demo
+name: "z · Advanced (composite)"
 
 on:
   workflow_dispatch:

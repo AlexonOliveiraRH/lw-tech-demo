@@ -30,10 +30,15 @@ jobs:
           SBOM_STAGE: before
           SBOM_SKIP_INSTALL: "1"
         run: ./scripts/sbom-generate.sh
+      - name: Visual demo report
+        working-directory: apps/vulnerable-fastapi
+        run: poetry run python ../../scripts/render-demo-report.py before
       - uses: actions/upload-artifact@v4
         with:
           name: scan-before
           path: |
+            artifacts/live/demo-report-before.html
+            artifacts/live/demo-report-before.md
             artifacts/live/scan-before-summary.md
             artifacts/live/pip-audit-before.txt
             artifacts/live/trivy-before.txt
