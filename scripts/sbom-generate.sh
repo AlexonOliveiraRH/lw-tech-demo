@@ -12,6 +12,9 @@ CDX="${OUT}/vulnerable-fastapi-${STAMP}.cdx.json"
 
 (
   cd "${APP}"
+  if [[ "${USE_LIGHTWELL:-false}" == "true" ]] || grep -q "BEGIN LIGHTWELL DEMO SOURCE" pyproject.toml; then
+    poetry lock --no-interaction
+  fi
   poetry install --no-interaction
 )
 
