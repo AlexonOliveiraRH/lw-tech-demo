@@ -23,7 +23,9 @@ Outputs:
 - `artifacts/live/sbom-before.cdx.json` / `sbom-after.cdx.json` (Actions artifact copies)
 - stamped `vulnerable-fastapi-{stage}-{UTC}.cdx.json` under `sbom/out/`
 
-Uses **Syft** when installed; otherwise **Trivy** `--format cyclonedx`.
+Uses **Syft** when installed; otherwise **Trivy** `--format cyclonedx`, then
+`scripts/sbom-lens-normalize.py` so every component has a **Package URL (purl)** —
+Lens skips entries without one (e.g. raw `poetry.lock` / filesystem path metadata from a directory scan).
 
 ## Upload to Lens
 

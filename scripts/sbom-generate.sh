@@ -55,6 +55,10 @@ else
   exit 1
 fi
 
+# Lens rejects entries without Package URL (purl). Trivy/Syft dir scans add
+# poetry.lock + filesystem-path metadata with no purl → “2 packages skipped”.
+python3 "${ROOT}/scripts/sbom-lens-normalize.py" "${CDX}" --app-dir "${APP}"
+
 cp -f "${CDX}" "${STABLE}"
 ln -sfn "$(basename "${CDX}")" "${OUT}/vulnerable-fastapi-latest.cdx.json"
 cp -f "${CDX}" "${LIVE_COPY}"
