@@ -31,16 +31,22 @@ Scan → change source provider → rebuild → prove it (report + Lens SBOM)
 
 ---
 
-## Slide 2 — What you need (once)
+## Slide 2 — Setup (3 steps)
 
-**Title:** Prerequisites
+**Title:** Live Action Demo — Setup
 
-1. Lightwell entitlement on **console.redhat.com**  
-2. A **service account** (`orgId|name` + token)  
-3. **Lens** in your tenant  
-4. This repo **or a fork** (Actions → GitHub-hosted by default)
+**Subtitle:** Three steps. Then two clicks.
 
-**Screenshot:** Console SA create
+| 1 · GitHub | 2 · Lightwell Console | 3 · Run the demo |
+|------------|------------------------|------------------|
+| Open the repo and sign in with your **GitHub** ID | Sign in to **console.redhat.com** → create/get Lightwell **service account** (`orgId\|name` + token) | Actions → **1 · Scan** then **2 · Remediate** (2 clicks for before / after) |
+
+**Repo:** https://github.com/dasmlab/lw-tech-demo  
+
+**After the runs:** download the flat artifacts (report + SBOM) → open the HTML in-browser → upload the SBOM to **Lens**  
+https://console.redhat.com/lightwell/lens
+
+**Screenshot:** repo Actions sidebar · Console SA · Lens URL
 
 ---
 
