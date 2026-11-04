@@ -122,17 +122,22 @@ jobs:
           path: artifacts/bundle-after/
           if-no-files-found: warn
 
-      - name: Link artifacts in Job Summary
+      - name: Put download link at top of Job Summary
         if: steps.upload-remediate-proof.outputs.artifact-url != ''
         env:
           ARTIFACT_URL: ${{ steps.upload-remediate-proof.outputs.artifact-url }}
         run: |
+          tmp="$(mktemp)"
           {
+            echo "## Download remediate report and SBOM"
             echo ""
-            echo "## Download artifacts (no fishing)"
+            echo "[**Download zip**](${ARTIFACT_URL}) — \`demo-report-after.html\` + \`sbom-after.cdx.json\` at the zip root."
             echo ""
-            echo "[**Download \`remediate-proof\` zip**](${ARTIFACT_URL}) — contains \`demo-report-after.html\` + \`sbom-after.cdx.json\` at the zip root."
+            echo "Unzip → open the HTML → upload the SBOM to [Lens](https://console.redhat.com/lightwell/lens)."
             echo ""
-            echo "Must be logged into GitHub. Unzip → open the HTML → upload the SBOM to [Lens](https://console.redhat.com/lightwell/lens)."
+            echo "---"
             echo ""
-          } >> "$GITHUB_STEP_SUMMARY"
+            cat "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          } > "$tmp"
+          cat "$tmp" > "$GITHUB_STEP_SUMMARY"
+          rm -f "$tmp"
