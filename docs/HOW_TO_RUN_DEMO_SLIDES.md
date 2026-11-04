@@ -1,149 +1,99 @@
 # How to Run the Demo — 6 slides
 
-Paste into your deck as-is. Bracketed lines are **screenshot callouts**.
+Keep every slide to **one idea**. Bracketed lines = screenshot callouts.
 
 Repo: https://github.com/dasmlab/lw-tech-demo  
-Console: https://console.redhat.com (Lightwell entitlement → service account)
+Console: https://console.redhat.com (Lightwell → service account + Lens)
 
 ---
 
-## Slide 1 — What this demo proves (in ~15 minutes)
+## Slide 1 — What this demo proves
 
-**Title:** Live before → after with the Lightwell Network + Lens
+**Title:** Same app. Change the package source. Fault → fixed.
 
-**Body**
+**One line under the title**
 
-- Same FastAPI app. **No application rewrite.**
-- **Before:** public PyPI pins → scanners + Lens light up  
-- **After:** build machine pulls from the **Lightwell Network** → `+rhlw.1` remediated builds + Validated catalog  
-- Immediate value in an **existing CI pipeline** (GitHub Actions standing in for a typical SDLC)
+No code rewrite — only where the build pulls packages from.
 
-**Observation points**
+**The story (four beats, left → right)**
 
-1. Ease of integration — remotes / index on the build machine, not a rewrite  
-2. Anyone with a Lightwell **service account** (from console.redhat.com) can run this repo or a fork  
-3. Before/after **SBOMs** (Lens) + **demo-report.html** from the Actions artifacts
+| 1 · App | 2 · Scan | 3 · Point at Lightwell | 4 · Build again |
+|---------|----------|------------------------|-----------------|
+| One FastAPI app | Public open-source pins | Source / remote = Lightwell Network | Same pipeline |
+| Unchanged | See the fault (CVE noise) | Not a refactor | Fault remediated (`+rhlw.1`) |
 
-**Screenshot:** repo README “Steps” / Actions sidebar showing **1 · Scan** and **2 · Remediate** (ignore `z · …`)
+**Footer line**
 
----
+Scan → change source provider → rebuild → prove it (report + Lens SBOM)
 
-## Slide 2 — Setup & what it simulates
-
-**Title:** SDLC simplified — Scan then Remediate
-
-**What it simulates**
-
-| Pipeline motion | This kit |
-|-----------------|----------|
-| CI scans the app on public deps | **1 · Scan (vulnerable)** |
-| Pipeline remotes point at Lightwell; rebuild | **2 · Remediate (Lightwell)** |
-| Review SBOM / findings | **Lens** + **demo-report.html** |
-
-**Setup (once)**
-
-- Entitlement on **console.redhat.com** → create Lightwell **service account** → copy `orgId|name` + token  
-- Fork this repo (or run here if you have Actions access) — default runner is **GitHub-hosted** `ubuntu-latest`  
-- Token is pasted **per run**, not stored in the public repo; run title shows `@github-user`
-
-**The integration story**
-
-- App code is unchanged.  
-- The build machine points Poetry at Lightwell (**Validated** + **Remediated** for sqlparse / PyPDF2 / tokenizers) — same idea as a remote / index line — then consumes results (tests, SBOM, Lens).
-
-**Screenshot:** Lightwell Console service-account create (or `orgId|sa` form fields on workflow **2**)  
-**Screenshot (optional):** config snippet showing `source = "lightwell-remediated"` on the three pins
+**Screenshot:** none required — this is the narrative slide  
+**Layout hint:** one horizontal flow, not three feature columns
 
 ---
 
-## Slide 3 — Step 1: Scan (vulnerable)
+## Slide 2 — What you need (once)
 
-**Title:** Run **1 · Scan (vulnerable)** — no Lightwell login
+**Title:** Prerequisites
 
-**Do**
+1. Lightwell entitlement on **console.redhat.com**  
+2. A **service account** (`orgId|name` + token)  
+3. **Lens** in your tenant  
+4. This repo **or a fork** (Actions → GitHub-hosted by default)
 
-1. Actions → **1 · Scan (vulnerable)** → Run workflow  
-2. When green, open the run, scroll down, **download artifacts** (`scan-before`), unzip (flat root)  
+**Screenshot:** Console SA create
+
+---
+
+## Slide 3 — Before: scan the app
+
+**Title:** Step 1 — Scan (public sources)
+
+1. Actions → **1 · Scan (vulnerable)** → Run  
+2. Download `scan-before` → unzip (flat)  
 3. Open **`demo-report-before.html`**  
-4. Upload **`sbom-before.cdx.json`** to **Lightwell Lens**
+4. Upload **`sbom-before.cdx.json`** to Lens  
 
-**Look for**
+**Look for:** findings on sqlparse / PyPDF2 / tokenizers
 
-- Public pins: sqlparse `0.5.5`, PyPDF2 `3.0.1`, tokenizers `0.23.1`  
-- pip-audit / Trivy **FINDINGS** on that set  
-- Lens **hooks** on the before SBOM
-
-**Notable:** same three packages Lightwell remediates — noise appears before any remotes change.
-
-**Screenshot:** Actions artifacts download  
-**Screenshot:** browser with `demo-report-before.html` (FINDINGS)  
-**Screenshot:** Lens after uploading `sbom-before.cdx.json`
+**Screenshot:** FINDINGS report · Lens hooks on before SBOM
 
 ---
 
-## Slide 4 — Step 2: Remediate (Lightwell Network)
+## Slide 4 — The only change
 
-**Title:** Run **2 · Remediate (Lightwell)** — paste SA for this run only
+**Title:** Point the build at Lightwell (not the app)
 
-**Do**
+- App code: **unchanged**  
+- Build machine: resolve from **Lightwell Remediated** (+ Validated catalog)  
+- Same idea as flipping an Artifactory / pip remote
 
-1. Actions → **2 · Remediate (Lightwell)** → Run workflow  
-2. Inputs: `lightwell_user` = `orgId|service-account-name` · `lightwell_token` = token  
-3. When green, download **`remediate-proof`**, unzip  
-4. Open **`demo-report-after.html`** · upload **`sbom-after.cdx.json`** to Lens
-
-**Look for**
-
-| Signal | Meaning |
-|--------|---------|
-| `…+rhlw.1` on the three packages | **Remediated** feed / Lightwell Network builds |
-| FastAPI / httpx still resolve | **Validated** catalog |
-| pytest green | No app rewrite |
-| pip-audit: not found on public PyPI | Not the vulnerable public wheels |
-
-**Screenshot:** workflow_dispatch form with user + token fields  
-**Screenshot:** `+rhlw.1` in Summary or after report  
-**Screenshot:** `demo-report-after.html` (PASS)
+**Screenshot (optional):** `source = "lightwell-remediated"` on the three pins
 
 ---
 
-## Slide 5 — Lens + reports (before / after)
+## Slide 5 — After: build again
 
-**Title:** Prove it two ways — Lens SBOM + demo-report.html
+**Title:** Step 2 — Remediate (Lightwell sources)
 
-**Before**
+1. Actions → **2 · Remediate (Lightwell)** → paste SA user + token → Run  
+2. Download `remediate-proof` → unzip  
+3. Open **`demo-report-after.html`**  
+4. Upload **`sbom-after.cdx.json`** to Lens  
 
-- `sbom-before.cdx.json` → Lens → hooks on public inventory  
-- `demo-report-before.html` → CVE / pin snapshot
+**Look for:** `+rhlw.1` · tests green · before/after difference in Lens
 
-**After**
-
-- `sbom-after.cdx.json` → Lens → inventory with `+rhlw.1`  
-- `demo-report-after.html` → origin proof without reading CI logs
-
-**Observation points**
-
-- Same app and pipeline shape before / after  
-- Artifacts come from the Actions run — token is per-run for forks
-
-**Screenshot:** Lens before vs after  
-**Screenshot:** artifacts list showing `sbom-*.cdx.json` + `demo-report-*.html`
+**Screenshot:** PASS report with `+rhlw.1` · Lens after SBOM
 
 ---
 
-## Slide 6 — Wrap-up
+## Slide 6 — That’s the demo
 
-**Title:** Minutes to value — takeaways
+**Title:** Fault in → source change → fault out
 
-**Recap**
+- Same application and CI shape  
+- Remediation from the **package source**, not a rewrite  
+- Proof: **demo-report.html** + **Lens SBOM** (before and after)
 
-- Pipeline motion: **scan → point build at Lightwell → remediate → SBOM / Lens**  
-- Integration is on the **build machine / remotes**, not a rewrite  
-- Runnable with a Lightwell SA from **console.redhat.com** (this repo or a fork)
+**Ask:** Who owns the index/remotes? Which app do we pilot first?
 
-**Next**
-
-- Who owns Artifactory (or pip index) remotes?  
-- Which pilot service for Remediated + Validated?  
-
-**Screenshot (optional):** Actions sidebar — only **1** and **2**
+**Screenshot:** Actions sidebar — only **1** and **2**
