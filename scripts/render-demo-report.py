@@ -219,7 +219,18 @@ def render(stage: str) -> tuple[Path, Path]:
         vuln_html = "<section><h2>pip-audit</h2><p>See artifact <code>pip-audit-*.txt</code>.</p></section>"
 
     trivy_html = ""
-    if trivy_rows:
+    if stage == "after" and lightwell:
+        # Trivy often still maps public CVE IDs onto +rhlw.* by upstream version string.
+        # Sales proof is package origin (+rhlw / Lightwell source) + pip-audit "not on PyPI".
+        trivy_html = """
+        <section>
+          <h2>Trivy note</h2>
+          <p class="ok">Installed builds are <code>+rhlw.1</code> from Lightwell Remediated.</p>
+          <p class="hint">Some scanners still attach public CVE IDs to the upstream version string.
+          On the call, lead with <strong>Lightwell origin</strong> and pip-audit’s
+          <em>not found on PyPI</em> — then Lens on the after SBOM.</p>
+        </section>"""
+    elif trivy_rows:
         cells = "".join(
             f"<tr><td>{esc(r['package'])}</td><td><code>{esc(r['id'])}</code></td>"
             f"<td><span class='sev'>{esc(r['severity'])}</span></td>"
@@ -235,7 +246,7 @@ def render(stage: str) -> tuple[Path, Path]:
           </table>
         </section>"""
     elif stage == "after":
-        trivy_html = "<section><h2>Trivy</h2><p class='ok'>No HIGH/CRITICAL hits on the remediated set (or scanners see +rhlw builds as distinct).</p></section>"
+        trivy_html = "<section><h2>Trivy</h2><p class='ok'>No HIGH/CRITICAL hits on the remediated set.</p></section>"
 
     page = f"""<!DOCTYPE html>
 <html lang="en">
