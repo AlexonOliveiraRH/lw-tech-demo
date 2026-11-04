@@ -80,7 +80,12 @@ echo "==> pip-audit BEFORE (catches PyPDF2 + sqlparse)"
   grep -iE 'sqlparse|pypdf|tokenizer' "${AUDIT}" || echo "(see full pip-audit / trivy artifacts)"
   echo '```'
   echo
-  echo "Next: run **Remediate with Lightwell** and paste your service-account user + token."
+  echo "## SBOM → Lightwell Lens"
+  echo
+  echo "Download **\`sbom-before.cdx.json\`** from this run’s artifacts and upload it to Lightwell Lens."
+  echo "Lens hooks should catch the public vulnerable pins (sqlparse / PyPDF2 / tokenizers)."
+  echo
+  echo "Next: run **Remediate with Lightwell** (paste service-account user + token), then upload the after SBOM."
 } > "${SUMMARY}"
 
 cat "${SUMMARY}"

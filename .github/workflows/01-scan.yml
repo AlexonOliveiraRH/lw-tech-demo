@@ -1,5 +1,5 @@
 # Sales step 1 — no Lightwell auth required.
-# Shows CVE noise on the public pins for sqlparse / PyPDF2 / tokenizers.
+# Shows CVE noise on the public pins + CycloneDX SBOM for Lens hooks demo.
 
 name: "1 · Scan (vulnerable)"
 
@@ -24,6 +24,12 @@ jobs:
         env:
           USE_LIGHTWELL: "false"
         run: ./scripts/scan-before.sh
+      - name: SBOM (vulnerable) for Lightwell Lens
+        env:
+          USE_LIGHTWELL: "false"
+          SBOM_STAGE: before
+          SBOM_SKIP_INSTALL: "1"
+        run: ./scripts/sbom-generate.sh
       - uses: actions/upload-artifact@v4
         with:
           name: scan-before
@@ -32,4 +38,7 @@ jobs:
             artifacts/live/pip-audit-before.txt
             artifacts/live/trivy-before.txt
             artifacts/live/trivy-before.json
+            artifacts/live/sbom-before.cdx.json
+            artifacts/live/sbom-before-inventory.txt
+            sbom/out/vulnerable-fastapi-before*.cdx.json
           if-no-files-found: warn

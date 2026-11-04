@@ -21,6 +21,8 @@ Actions → **1 · Scan (vulnerable)** → Run workflow.
 
 **Show:** Job summary + `scan-before` artifact (pip-audit lines for sqlparse / PyPDF2).
 
+**Lens beat:** download **`sbom-before.cdx.json`** → upload to Lightwell Lens → show the catch / hooks on the public vulnerable inventory.
+
 ---
 
 ## 2. Remediate — paste auth for this run only
@@ -49,6 +51,8 @@ Enter:
 
 Open artifact **`remediate-proof`** / `lightwell-proof.md` if you want a single page.
 
+**Lens beat (after):** download **`sbom-after.cdx.json`** → upload to Lens as the remediated SBOM (inventory shows `+rhlw.1`).
+
 ---
 
 ## 3. Close
@@ -56,6 +60,7 @@ Open artifact **`remediate-proof`** / `lightwell-proof.md` if you want a single 
 - Remote / index change = minutes  
 - **Remediated** clears eligible CVE noise at the package  
 - **Validated** keeps the rest of the catalog RH-built  
+- SBOM → Lens: before shows hooks; after shows Lightwell Network builds  
 - Ask who owns Artifactory virtuals + which pilot service  
 
 Optional Artifactory admin deep-dive: `integration/artifactory/SETUP.md` (local OSS; Pro for remotes).

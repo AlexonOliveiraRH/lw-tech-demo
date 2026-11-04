@@ -1,28 +1,40 @@
-# SBOM → Lightwell Lens (segment 5)
+# SBOM → Lightwell Lens
 
-## Generate
+Sales flow produces **two** CycloneDX files:
 
-From repo root:
+| Stage | Workflow | Artifact file | Demo beat |
+|-------|----------|---------------|-----------|
+| **Before** | `1 · Scan (vulnerable)` | `sbom-before.cdx.json` | Upload to Lens → show catch / hooks on public pins |
+| **After** | `2 · Remediate (Lightwell)` | `sbom-after.cdx.json` | Upload to Lens → show `+rhlw.1` Lightwell Network inventory |
+
+## Generate locally
 
 ```bash
-./scripts/sbom-generate.sh
+# Vulnerable / public pins (after ./scripts/scan-before.sh)
+SBOM_STAGE=before SBOM_SKIP_INSTALL=1 ./scripts/sbom-generate.sh
+
+# Lightwell remediated (after USE_LIGHTWELL=true ./scripts/scan-after.sh)
+USE_LIGHTWELL=true SBOM_STAGE=after SBOM_SKIP_INSTALL=1 ./scripts/sbom-generate.sh
 ```
 
-Output: `sbom/out/vulnerable-fastapi-*.cdx.json` (CycloneDX) plus `vulnerable-fastapi-latest.cdx.json` symlink.
+Outputs:
+
+- `sbom/out/vulnerable-fastapi-before.cdx.json` / `…-after.cdx.json` (stable names)
+- `artifacts/live/sbom-before.cdx.json` / `sbom-after.cdx.json` (Actions artifact copies)
+- stamped `vulnerable-fastapi-{stage}-{UTC}.cdx.json` under `sbom/out/`
 
 Uses **Syft** when installed; otherwise **Trivy** `--format cyclonedx`.
 
 ## Upload to Lens
 
 1. Open `${LIGHTWELL_LENS_URL}` (tenant provided for the engagement).
-2. Upload the CycloneDX JSON from `sbom/out/`.
-3. Show:
-   - software component inventory for the FastAPI demo
-   - automated **VEX** triage / noise reduction to actionable items
+2. Upload the CycloneDX JSON from the Actions artifact (or `sbom/out/`).
+3. **Before:** show software inventory + automated hooks catching sqlparse / PyPDF2 / tokenizers.
+4. **After:** re-upload (or compare) the remediated SBOM — versions carry `+rhlw.1` from Lightwell Remediated.
 
 ## Talk track
 
-> “Transparency for AppSec without forcing a new runtime scanner purchase for Day-1 remediation.”
+> “Transparency for AppSec without forcing a new runtime scanner purchase for Day-1 remediation — Lens hooks on the before SBOM, then the after SBOM proves the Lightwell Network builds.”
 
 ## Formats
 

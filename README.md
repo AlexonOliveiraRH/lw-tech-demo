@@ -14,7 +14,8 @@ Public repo: [dasmlab/lw-tech-demo](https://github.com/dasmlab/lw-tech-demo)
 1. Open **[Actions → 1 · Scan (vulnerable)](https://github.com/dasmlab/lw-tech-demo/actions/workflows/01-scan.yml)**
 2. Click **Run workflow** → **Run workflow**
 3. When green, open the run → **Job summary** and artifact **`scan-before`**
-4. **Say:** “Same three packages Lightwell remediates today — sqlparse, PyPDF2, tokenizers — scanners find CVE noise on the public builds.”
+4. Download **`sbom-before.cdx.json`** → upload to **Lightwell Lens** to show the catch / hooks on the public pins
+5. **Say:** “Same three packages Lightwell remediates today — sqlparse, PyPDF2, tokenizers — scanners *and* Lens light up on the public builds.”
 
 ### Step 2 — Remediate (paste token for this run only)
 
@@ -30,8 +31,9 @@ Public repo: [dasmlab/lw-tech-demo](https://github.com/dasmlab/lw-tech-demo)
    - **Validated** feed = the rest of the RH-built catalog (FastAPI, etc.)
    - pip-audit no longer treats them as the public vulnerable PyPI artifacts  
    - Tests still pass — **no application rewrite**
+6. Download **`sbom-after.cdx.json`** from **`remediate-proof`** → upload to Lens as the clean / remediated SBOM
 
-Artifacts to screen-share: **`remediate-proof`** → `lightwell-proof.md`
+Artifacts to screen-share: **`remediate-proof`** → `lightwell-proof.md` + `sbom-after.cdx.json`
 
 ---
 

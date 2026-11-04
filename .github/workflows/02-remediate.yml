@@ -79,6 +79,12 @@ jobs:
       - name: Scan after + Lightwell proof
         run: ./scripts/scan-after.sh
 
+      - name: SBOM (Lightwell) for Lightwell Lens
+        env:
+          SBOM_STAGE: after
+          SBOM_SKIP_INSTALL: "1"
+        run: ./scripts/sbom-generate.sh
+
       - uses: actions/upload-artifact@v4
         with:
           name: remediate-proof
@@ -87,5 +93,8 @@ jobs:
             artifacts/live/pip-audit-after.txt
             artifacts/live/trivy-after.txt
             artifacts/live/trivy-after.json
+            artifacts/live/sbom-after.cdx.json
+            artifacts/live/sbom-after-inventory.txt
+            sbom/out/vulnerable-fastapi-after*.cdx.json
             apps/vulnerable-fastapi/poetry.lock
           if-no-files-found: warn

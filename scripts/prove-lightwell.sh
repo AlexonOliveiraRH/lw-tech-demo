@@ -114,6 +114,10 @@ fi
 
 {
   echo
+  echo "## SBOM for Lightwell Lens"
+  echo
+  echo "After this run, download **\`sbom-after.cdx.json\`** and upload to Lens (compare with Step 1’s \`sbom-before.cdx.json\` hooks)."
+  echo
   echo "## Pass/fail for the live demo"
   echo
   if [[ "${all_ok}" == "true" ]]; then
