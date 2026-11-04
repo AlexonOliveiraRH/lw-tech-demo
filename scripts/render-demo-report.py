@@ -343,7 +343,7 @@ def render(stage: str) -> tuple[Path, Path]:
     {trivy_html}
 
     <section class="cta">
-      <h2>What to do on the call</h2>
+      <h2>What to call attention to</h2>
       <ol class="steps">
         <li>Screen-share this report (download artifact <code>demo-report-{esc(stage)}.html</code> and open in a browser).</li>
         <li>Upload <code>{esc(sbom_name)}</code> to <strong>Lightwell Lens</strong>.</li>

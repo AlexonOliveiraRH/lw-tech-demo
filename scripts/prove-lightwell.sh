@@ -18,7 +18,7 @@ REMEDIATED_PKGS=(sqlparse PyPDF2 tokenizers)
   echo
   echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
-  echo "## What to say on the call"
+  echo "## What to call attention to"
   echo
   echo "1. **Before:** public pins — scanners show CVE noise on the remediated set."
   echo "2. **After:** same app, no code change — packages come from the **Lightwell Network**."
