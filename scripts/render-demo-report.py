@@ -399,12 +399,7 @@ def render(stage: str) -> tuple[Path, Path]:
     ]
     md_path = LIVE / f"demo-report-{stage}.md"
     md_path.write_text("\n".join(md_lines) + "\n", encoding="utf-8")
-
-    summary = os.environ.get("GITHUB_STEP_SUMMARY")
-    if summary:
-        with open(summary, "a", encoding="utf-8") as fh:
-            fh.write(md_path.read_text(encoding="utf-8"))
-            fh.write("\n")
+    # Job Summary is composed once at end of the workflow (download link first).
 
     print(f"Wrote {html_path}")
     print(f"Wrote {md_path}")

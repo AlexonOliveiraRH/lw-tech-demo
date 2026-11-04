@@ -39,32 +39,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Park Job Summary path
-        run: |
-          mkdir -p artifacts/live
-          : > artifacts/live/_summary_body.md
-          echo "LW_REAL_STEP_SUMMARY=${GITHUB_STEP_SUMMARY}" >> "$GITHUB_ENV"
-          echo "GITHUB_STEP_SUMMARY=" >> "$GITHUB_ENV"
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: Mask token
         run: echo "::add-mask::${LIGHTWELL_PYPI_TOKEN}"
-
-      - name: Who ran this
-        run: |
-          {
-            echo "## Run identity"
-            echo ""
-            echo "| | |"
-            echo "|--|--|"
-            echo "| GitHub actor | \`@${{ github.actor }}\` |"
-            echo "| Lightwell user | \`${{ inputs.lightwell_user }}\` |"
-            echo "| Runner | \`${{ inputs.runner }}\` |"
-            echo ""
-          } >> artifacts/live/_summary_body.md
 
       - name: Install tools
         run: WITH_TRIVY=true ./scripts/ci-install-tools.sh
@@ -83,11 +63,22 @@ jobs:
       - name: Show remediated versions (+rhlw.1)
         working-directory: apps/vulnerable-fastapi
         run: |
+          mkdir -p "${GITHUB_WORKSPACE}/artifacts/live"
           BODY="${GITHUB_WORKSPACE}/artifacts/live/_summary_body.md"
-          echo "## Installed from Lightwell" >> "$BODY"
-          echo "" >> "$BODY"
-          echo "| Package | Version |" >> "$BODY"
-          echo "|---------|---------|" >> "$BODY"
+          {
+            echo "## Run identity"
+            echo ""
+            echo "| | |"
+            echo "|--|--|"
+            echo "| GitHub actor | \`@${{ github.actor }}\` |"
+            echo "| Lightwell user | \`${{ inputs.lightwell_user }}\` |"
+            echo "| Runner | \`${{ inputs.runner }}\` |"
+            echo ""
+            echo "## Installed from Lightwell"
+            echo ""
+            echo "| Package | Version |"
+            echo "|---------|---------|"
+          } > "$BODY"
           for pkg in sqlparse PyPDF2 tokenizers; do
             ver=$(poetry run python -c "import importlib.metadata as m; print(m.version('$pkg'))")
             echo "| $pkg | \`$ver\` |" >> "$BODY"
@@ -97,9 +88,12 @@ jobs:
               *) echo "::error::$pkg is not a Lightwell +rhlw build ($ver)"; exit 1 ;;
             esac
           done
-          echo "" >> "$BODY"
-          echo "**Remediated** feed → sqlparse / PyPDF2 / tokenizers (\`+rhlw.1\`)." >> "$BODY"
-          echo "**Validated** feed → remaining catalog (FastAPI, httpx, …)." >> "$BODY"
+          {
+            echo ""
+            echo "**Remediated** feed → sqlparse / PyPDF2 / tokenizers (\`+rhlw.1\`)."
+            echo "**Validated** feed → remaining catalog (FastAPI, httpx, …)."
+            echo ""
+          } >> "$BODY"
 
       - name: Pytest (no app rewrite)
         working-directory: apps/vulnerable-fastapi
@@ -128,22 +122,24 @@ jobs:
           path: artifacts/bundle-after/
           if-no-files-found: warn
 
-      - name: Job Summary (download first)
+      - name: Job Summary
         env:
           ARTIFACT_ID: ${{ steps.upload-remediate-proof.outputs.artifact-id }}
           ARTIFACT_URL: ${{ steps.upload-remediate-proof.outputs.artifact-url }}
         run: |
-          export GITHUB_STEP_SUMMARY="${LW_REAL_STEP_SUMMARY}"
-          if [[ -z "${ARTIFACT_URL}" && -n "${ARTIFACT_ID}" ]]; then
+          set -euo pipefail
+          if [[ -z "${ARTIFACT_URL:-}" && -n "${ARTIFACT_ID:-}" ]]; then
             ARTIFACT_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_ID}"
           fi
           {
             echo "## Download remediate report and SBOM"
             echo ""
-            if [[ -n "${ARTIFACT_URL}" ]]; then
-              echo "[**Download zip**](${ARTIFACT_URL}) — \`demo-report-after.html\` + \`sbom-after.cdx.json\` at the zip root."
+            if [[ -n "${ARTIFACT_URL:-}" ]]; then
+              echo "[**Download zip**](${ARTIFACT_URL})"
+              echo ""
+              echo "Zip root: \`demo-report-after.html\` + \`sbom-after.cdx.json\`"
             else
-              echo "See **Artifacts** → \`remediate-proof\` at the bottom of this run."
+              echo "Open **Artifacts** → \`remediate-proof\` on this run."
             fi
             echo ""
             echo "Unzip → open the HTML → upload the SBOM to [Lens](https://console.redhat.com/lightwell/lens)."
@@ -153,4 +149,5 @@ jobs:
             [[ -f artifacts/live/_summary_body.md ]] && cat artifacts/live/_summary_body.md && echo ""
             [[ -f artifacts/live/lightwell-proof.md ]] && cat artifacts/live/lightwell-proof.md && echo ""
             [[ -f artifacts/live/demo-report-after.md ]] && cat artifacts/live/demo-report-after.md && echo ""
-          } >> "${GITHUB_STEP_SUMMARY}"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Summary OK artifact_url=${ARTIFACT_URL:-none} id=${ARTIFACT_ID:-none}"

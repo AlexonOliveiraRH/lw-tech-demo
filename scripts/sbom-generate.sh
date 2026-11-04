@@ -94,19 +94,4 @@ echo
 echo "${TALK}"
 echo "See sbom/README.md for Lens upload notes."
 
-if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
-  {
-    echo
-    echo "## SBOM for Lightwell Lens (${LABEL})"
-    echo
-    echo "${TALK}"
-    echo
-    echo "Download artifact file: \`sbom-${LABEL}.cdx.json\` (CycloneDX)."
-    echo
-    if [[ -f "${INV}" ]]; then
-      echo '```'
-      cat "${INV}"
-      echo '```'
-    fi
-  } >> "${GITHUB_STEP_SUMMARY}"
-fi
+# Job Summary is composed once at end of the workflow (download link first).

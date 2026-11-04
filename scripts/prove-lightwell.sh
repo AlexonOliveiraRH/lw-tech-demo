@@ -132,9 +132,7 @@ fi
 echo "Wrote ${PROOF}"
 cat "${PROOF}"
 
-if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
-  cat "${PROOF}" >> "${GITHUB_STEP_SUMMARY}"
-fi
+# Job Summary is composed once at end of the workflow (download link first).
 
 if [[ "${all_ok}" != "true" ]]; then
   exit 1
