@@ -26,6 +26,8 @@ sbom/out/*
 !sbom/out/.gitkeep
 artifacts/live/*
 !artifacts/live/.gitkeep
+artifacts/bundle-before/
+artifacts/bundle-after/
 !artifacts/sample-reports/**
 
 # Artifactory local data

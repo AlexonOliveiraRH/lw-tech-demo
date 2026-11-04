@@ -89,18 +89,12 @@ jobs:
         working-directory: apps/vulnerable-fastapi
         run: poetry run python ../../scripts/render-demo-report.py after
 
+      - name: Stage flat artifact bundle
+        run: ./scripts/stage-artifact-bundle.sh after
+
       - uses: actions/upload-artifact@v4
         with:
+          # Flat zip root: demo-report-after.html + sbom-after.cdx.json (no nested paths)
           name: remediate-proof
-          path: |
-            artifacts/live/demo-report-after.html
-            artifacts/live/demo-report-after.md
-            artifacts/live/lightwell-proof.md
-            artifacts/live/pip-audit-after.txt
-            artifacts/live/trivy-after.txt
-            artifacts/live/trivy-after.json
-            artifacts/live/sbom-after.cdx.json
-            artifacts/live/sbom-after-inventory.txt
-            sbom/out/vulnerable-fastapi-after*.cdx.json
-            apps/vulnerable-fastapi/poetry.lock
+          path: artifacts/bundle-after/
           if-no-files-found: warn

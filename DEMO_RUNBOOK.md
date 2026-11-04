@@ -19,7 +19,7 @@ Actions → **1 · Scan (vulnerable)** → Run workflow.
 
 | Look at | Why |
 |---------|-----|
-| Artifacts → unzip `scan-before` | Download from the green run |
+| Artifacts → unzip `scan-before` | Flat zip root (no nested folders) |
 | `demo-report-before.html` | Visual before report |
 | `sbom-before.cdx.json` | Upload to **Lens** → hooks on public inventory |
 
@@ -38,7 +38,7 @@ Actions → **2 · Remediate (Lightwell)** → Run workflow.
 
 | Look at | Why |
 |---------|-----|
-| Artifacts → unzip `remediate-proof` | Download from the green run |
+| Artifacts → unzip `remediate-proof` | Flat zip root (no nested folders) |
 | `demo-report-after.html` | Origin proof (`+rhlw.1` / Lightwell Network) |
 | `sbom-after.cdx.json` | Upload to Lens and compare with before |
 | `lightwell-proof.md` | One-pager if needed |

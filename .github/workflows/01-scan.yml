@@ -33,17 +33,11 @@ jobs:
       - name: Visual demo report
         working-directory: apps/vulnerable-fastapi
         run: poetry run python ../../scripts/render-demo-report.py before
+      - name: Stage flat artifact bundle
+        run: ./scripts/stage-artifact-bundle.sh before
       - uses: actions/upload-artifact@v4
         with:
+          # Flat zip root: demo-report-before.html + sbom-before.cdx.json (no nested paths)
           name: scan-before
-          path: |
-            artifacts/live/demo-report-before.html
-            artifacts/live/demo-report-before.md
-            artifacts/live/scan-before-summary.md
-            artifacts/live/pip-audit-before.txt
-            artifacts/live/trivy-before.txt
-            artifacts/live/trivy-before.json
-            artifacts/live/sbom-before.cdx.json
-            artifacts/live/sbom-before-inventory.txt
-            sbom/out/vulnerable-fastapi-before*.cdx.json
+          path: artifacts/bundle-before/
           if-no-files-found: warn

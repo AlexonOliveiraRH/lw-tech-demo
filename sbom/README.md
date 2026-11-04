@@ -20,7 +20,9 @@ USE_LIGHTWELL=true SBOM_STAGE=after SBOM_SKIP_INSTALL=1 ./scripts/sbom-generate.
 Outputs:
 
 - `sbom/out/vulnerable-fastapi-before.cdx.json` / `…-after.cdx.json` (stable names)
-- `artifacts/live/sbom-before.cdx.json` / `sbom-after.cdx.json` (Actions artifact copies)
+- `artifacts/live/sbom-before.cdx.json` / `sbom-after.cdx.json` (working copies)
+- Actions zip root: `sbom-before.cdx.json` / `sbom-after.cdx.json` (flat — see `scripts/stage-artifact-bundle.sh`)
+
 - stamped `vulnerable-fastapi-{stage}-{UTC}.cdx.json` under `sbom/out/`
 
 Uses **Syft** when installed; otherwise **Trivy** `--format cyclonedx`, then

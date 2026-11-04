@@ -62,9 +62,9 @@ Console: https://console.redhat.com (Lightwell entitlement → service account)
 **Do**
 
 1. Actions → **1 · Scan (vulnerable)** → Run workflow  
-2. When green, open the run, scroll down, **download artifacts** (`scan-before`), unzip  
-3. Open **`artifacts/live/demo-report-before.html`**  
-4. Upload **`artifacts/live/sbom-before.cdx.json`** to **Lightwell Lens**
+2. When green, open the run, scroll down, **download artifacts** (`scan-before`), unzip (flat root)  
+3. Open **`demo-report-before.html`**  
+4. Upload **`sbom-before.cdx.json`** to **Lightwell Lens**
 
 **Look for**
 
