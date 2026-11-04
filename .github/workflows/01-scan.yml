@@ -26,6 +26,16 @@ jobs:
     runs-on: ${{ inputs.runner }}
     steps:
       - uses: actions/checkout@v4
+
+      # GitHub locks Job Summary writes per step in order — defer body until after upload
+      # so the download link can be the first thing on the page.
+      - name: Defer Job Summary body
+        run: |
+          mkdir -p artifacts/live
+          : > artifacts/live/_summary_body.md
+          echo "LW_REAL_STEP_SUMMARY=${GITHUB_STEP_SUMMARY}" >> "$GITHUB_ENV"
+          echo "GITHUB_STEP_SUMMARY=${GITHUB_WORKSPACE}/artifacts/live/_summary_body.md" >> "$GITHUB_ENV"
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -53,22 +63,22 @@ jobs:
           name: scan-before
           path: artifacts/bundle-before/
           if-no-files-found: warn
-      - name: Put download link at top of Job Summary
-        if: steps.upload-scan-before.outputs.artifact-url != ''
+      - name: Job Summary (download first)
         env:
           ARTIFACT_URL: ${{ steps.upload-scan-before.outputs.artifact-url }}
         run: |
-          tmp="$(mktemp)"
           {
             echo "## Download scan report and SBOM"
             echo ""
-            echo "[**Download zip**](${ARTIFACT_URL}) — \`demo-report-before.html\` + \`sbom-before.cdx.json\` at the zip root."
+            if [[ -n "${ARTIFACT_URL}" ]]; then
+              echo "[**Download zip**](${ARTIFACT_URL}) — \`demo-report-before.html\` + \`sbom-before.cdx.json\` at the zip root."
+            else
+              echo "Artifact zip: see **Artifacts** at the bottom of this run (\`scan-before\`)."
+            fi
             echo ""
             echo "Unzip → open the HTML → upload the SBOM to [Lens](https://console.redhat.com/lightwell/lens)."
             echo ""
             echo "---"
             echo ""
-            cat "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
-          } > "$tmp"
-          cat "$tmp" > "$GITHUB_STEP_SUMMARY"
-          rm -f "$tmp"
+            cat artifacts/live/_summary_body.md 2>/dev/null || true
+          } >> "${LW_REAL_STEP_SUMMARY}"
