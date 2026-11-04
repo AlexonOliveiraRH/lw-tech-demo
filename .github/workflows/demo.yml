@@ -1,0 +1,248 @@
+# Lightwell Part 2 — click-to-run demo pipeline (GitHub Actions UI)
+#
+# Actions → Lightwell Demo → Run workflow
+#   pipeline: scan-before | build | scan-after | test | scan-build | full | publish
+#   lightwell_user / lightwell_token: required for Lightwell stages unless repo secrets exist
+#
+# Forks / external demo runners: paste orgId|sa + token in the form.
+# Maintainers: set LIGHTWELL_PYPI_USER + LIGHTWELL_PYPI_TOKEN secrets and leave inputs blank.
+
+name: Lightwell Demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      pipeline:
+        description: "Demo stage / composite to run"
+        type: choice
+        required: true
+        default: scan-build
+        options:
+          - scan-before
+          - build
+          - scan-after
+          - test
+          - scan-build
+          - full
+          - publish
+      lightwell_user:
+        description: "Lightwell username (orgId|service-account-name). Blank → secret LIGHTWELL_PYPI_USER."
+        type: string
+        required: false
+        default: ""
+      lightwell_token:
+        description: "Lightwell service-account token. Blank → secret LIGHTWELL_PYPI_TOKEN. Required for Lightwell stages when secret unset."
+        type: string
+        required: false
+        default: ""
+      use_lightwell_for_build:
+        description: "For pipeline=build or test: resolve via Lightwell (needs token)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: lw-demo-${{ github.repository }}-${{ github.ref }}-${{ github.run_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  LIGHTWELL_PYPI_USER: ${{ inputs.lightwell_user != '' && inputs.lightwell_user || secrets.LIGHTWELL_PYPI_USER }}
+  LIGHTWELL_PYPI_TOKEN: ${{ inputs.lightwell_token != '' && inputs.lightwell_token || secrets.LIGHTWELL_PYPI_TOKEN }}
+
+jobs:
+  resolve-creds:
+    name: Resolve credentials
+    runs-on: ubuntu-latest
+    outputs:
+      need_lightwell: ${{ steps.decide.outputs.need_lightwell }}
+    steps:
+      - id: decide
+        env:
+          PIPELINE: ${{ inputs.pipeline }}
+          USE_LW_BUILD: ${{ inputs.use_lightwell_for_build }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${LIGHTWELL_PYPI_TOKEN:-}" ]]; then
+            echo "::add-mask::${LIGHTWELL_PYPI_TOKEN}"
+          fi
+          need=false
+          case "$PIPELINE" in
+            scan-after|scan-build|full|publish) need=true ;;
+            build|test)
+              if [[ "$USE_LW_BUILD" == "true" ]]; then need=true; fi
+              ;;
+          esac
+          echo "need_lightwell=$need" >> "$GITHUB_OUTPUT"
+          echo "pipeline=$PIPELINE need_lightwell=$need"
+          echo "user_set=$([ -n "${LIGHTWELL_PYPI_USER:-}" ] && echo yes || echo no)"
+          echo "token_set=$([ -n "${LIGHTWELL_PYPI_TOKEN:-}" ] && echo yes || echo no)"
+          if [[ "$need" == "true" && -z "${LIGHTWELL_PYPI_TOKEN:-}" ]]; then
+            echo "::error::Lightwell token required for pipeline='$PIPELINE'. Paste lightwell_token when starting the workflow, or set repository secret LIGHTWELL_PYPI_TOKEN."
+            exit 1
+          fi
+          if [[ "$need" == "true" && -z "${LIGHTWELL_PYPI_USER:-}" ]]; then
+            echo "::error::Lightwell user required (format orgId|service-account-name). Paste lightwell_user or set secret LIGHTWELL_PYPI_USER."
+            exit 1
+          fi
+
+  scan-before:
+    name: "1 · Scan before"
+    needs: resolve-creds
+    if: contains(fromJSON('["scan-before","scan-build","full"]'), inputs.pipeline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Poetry + Trivy
+        run: |
+          pipx install poetry
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b /usr/local/bin
+      - name: Scan before (public vulnerable pin)
+        env:
+          USE_LIGHTWELL: "false"
+        run: ./scripts/scan-before.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trivy-before
+          path: |
+            artifacts/live/trivy-before.txt
+            artifacts/live/trivy-before.json
+          if-no-files-found: warn
+
+  build:
+    name: "2 · Build + test"
+    needs: [resolve-creds, scan-before]
+    if: |
+      always() &&
+      needs.resolve-creds.result == 'success' &&
+      contains(fromJSON('["build","test","scan-build","full","publish"]'), inputs.pipeline) &&
+      (needs.scan-before.result == 'success' || needs.scan-before.result == 'skipped')
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/vulnerable-fastapi
+    env:
+      USE_LIGHTWELL: ${{ (
+          inputs.pipeline == 'scan-build' ||
+          inputs.pipeline == 'full' ||
+          inputs.pipeline == 'publish' ||
+          ((inputs.pipeline == 'build' || inputs.pipeline == 'test') && inputs.use_lightwell_for_build)
+        ) && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Mask Lightwell token
+        if: env.USE_LIGHTWELL == 'true'
+        run: echo "::add-mask::${LIGHTWELL_PYPI_TOKEN}"
+      - name: Configure Lightwell sources
+        if: env.USE_LIGHTWELL == 'true'
+        working-directory: ${{ github.workspace }}
+        run: |
+          # Dual-feed path (not Artifactory virtual) unless PYPI_INDEX_URL secret points at Artifactory
+          unset PYPI_INDEX_URL || true
+          if [[ -n "${{ secrets.PYPI_INDEX_URL }}" ]]; then
+            export PYPI_INDEX_URL="${{ secrets.PYPI_INDEX_URL }}"
+          fi
+          ./scripts/configure-poetry-source.sh
+      - name: Poetry lock + install
+        run: |
+          if [[ "${USE_LIGHTWELL}" == "true" ]]; then
+            poetry lock --no-interaction
+          fi
+          poetry install --no-interaction
+      - name: Show sqlparse
+        run: poetry show sqlparse
+      - name: Pytest
+        run: poetry run pytest -q
+      - uses: actions/upload-artifact@v4
+        if: env.USE_LIGHTWELL == 'true'
+        with:
+          name: poetry-lock-lightwell
+          path: apps/vulnerable-fastapi/poetry.lock
+
+  scan-after:
+    name: "3 · Scan after"
+    needs: [resolve-creds, build]
+    if: |
+      always() &&
+      needs.resolve-creds.result == 'success' &&
+      contains(fromJSON('["scan-after","scan-build","full"]'), inputs.pipeline) &&
+      (
+        needs.build.result == 'success' ||
+        (inputs.pipeline == 'scan-after' && needs.build.result == 'skipped')
+      )
+    runs-on: ubuntu-latest
+    env:
+      USE_LIGHTWELL: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Poetry + Trivy
+        run: |
+          pipx install poetry
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b /usr/local/bin
+      - name: Mask Lightwell token
+        run: echo "::add-mask::${LIGHTWELL_PYPI_TOKEN}"
+      - name: Scan after (Lightwell remediated)
+        run: |
+          unset PYPI_INDEX_URL || true
+          if [[ -n "${{ secrets.PYPI_INDEX_URL }}" ]]; then
+            export PYPI_INDEX_URL="${{ secrets.PYPI_INDEX_URL }}"
+          fi
+          ./scripts/scan-after.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trivy-after
+          path: |
+            artifacts/live/trivy-after.txt
+            artifacts/live/trivy-after.json
+          if-no-files-found: warn
+
+  publish:
+    name: "4 · Publish SBOM"
+    needs: [resolve-creds, build]
+    if: |
+      always() &&
+      needs.resolve-creds.result == 'success' &&
+      contains(fromJSON('["publish","full"]'), inputs.pipeline) &&
+      needs.build.result == 'success'
+    runs-on: ubuntu-latest
+    env:
+      USE_LIGHTWELL: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Poetry + Trivy
+        run: |
+          pipx install poetry
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b /usr/local/bin
+      - name: Mask Lightwell token
+        run: echo "::add-mask::${LIGHTWELL_PYPI_TOKEN}"
+      - name: Configure Lightwell + generate SBOM
+        run: |
+          unset PYPI_INDEX_URL || true
+          if [[ -n "${{ secrets.PYPI_INDEX_URL }}" ]]; then
+            export PYPI_INDEX_URL="${{ secrets.PYPI_INDEX_URL }}"
+          fi
+          ./scripts/configure-poetry-source.sh
+          ./scripts/sbom-generate.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom/out/*.cdx.json
+          if-no-files-found: error

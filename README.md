@@ -1,10 +1,38 @@
 # Lightwell Part 2 Technical Demo Kit
 
-Private demo assets for the **20-minute AppSec Lead & Artifactory Administrators** technical demonstration.
+Public demo assets for the **20-minute AppSec Lead & Artifactory Administrators** technical demonstration.
 
 Primary goal: prove integrating Lightwell into a Python build pipeline takes minutes, works with Poetry/Pipenv/Artifactory, and eliminates vulnerability noise on eligible packages — without an application rewrite.
 
 CISO / Part 1 slide narrative lives elsewhere; this repo is the live demo kit and runbook.
+
+## Run the demo from GitHub Actions (preferred)
+
+Less CLI: drive each stage from the Actions UI.
+
+1. Open **[Actions → Lightwell Demo](https://github.com/dasmlab/lw-tech-demo/actions/workflows/demo.yml)** → **Run workflow**
+2. Choose **pipeline**:
+
+| Pipeline | What runs |
+|----------|-----------|
+| `scan-before` | Trivy on public vulnerable pin |
+| `build` | Poetry install + pytest (Lightwell optional via checkbox) |
+| `scan-after` | Lightwell resolve + Trivy after |
+| `test` | Same as build (explicit test label) |
+| `scan-build` | scan-before → Lightwell build/test → scan-after |
+| `full` | scan-build + CycloneDX SBOM artifact |
+| `publish` | Lightwell build + SBOM upload |
+
+3. Provide credentials for Lightwell stages (`build` with Lightwell, `scan-after`, `scan-build`, `full`, `publish`):
+   - **lightwell_user** — `orgId|service-account-name` (e.g. `11009103|dasmlwsvc`)
+   - **lightwell_token** — service account token  
+   Or leave blank if the repo has secrets `LIGHTWELL_PYPI_USER` / `LIGHTWELL_PYPI_TOKEN` (maintainers / private forks).
+
+Forks and external runners paste their own user+token in the form each run — nothing Lightwell-secret is committed to this public repo.
+
+Reports land under the run’s **Artifacts** (`trivy-before`, `trivy-after`, `sbom-cyclonedx`).
+
+PR/push CI (`CI` workflow) only runs the **public** Poetry+pytest path — no token required.
 
 ## 20-minute agenda
 
@@ -99,4 +127,4 @@ Never commit tokens. See [docs/secrets.md](docs/secrets.md).
 
 ## License
 
-Internal demo material for Lightwell SSA engagement rehearsal. Not for public redistribution until the repo is made public.
+Demo material for Lightwell SSA engagement rehearsal. Public at [dasmlab/lw-tech-demo](https://github.com/dasmlab/lw-tech-demo).

@@ -1,43 +1,49 @@
 # Secrets and configuration
 
-Do **not** commit credentials. Configure locally or as GitHub Actions secrets.
+Do **not** commit credentials. See [lightwell-feeds.md](lightwell-feeds.md) for the four Console repositories.
 
-See also [lightwell-feeds.md](lightwell-feeds.md) for the four Console repositories (two Python + two Java).
+## GitHub Actions UI (public demo)
 
-## Required for live Lightwell path
+Preferred path: **Actions → Lightwell Demo → Run workflow**.
+
+| Input | When required | Notes |
+|-------|---------------|-------|
+| `pipeline` | always | `scan-before` / `build` / `scan-after` / `test` / `scan-build` / `full` / `publish` |
+| `lightwell_user` | Lightwell stages | `orgId\|service-account-name` |
+| `lightwell_token` | Lightwell stages | Pasted per run; masked in logs via `::add-mask::` |
+| `use_lightwell_for_build` | `build` / `test` | Default `true` |
+
+Lightwell stages: `scan-after`, `scan-build`, `full`, `publish`, and `build`/`test` when the checkbox is on.
+
+**Resolution order:** workflow input → repository secret (`LIGHTWELL_PYPI_USER` / `LIGHTWELL_PYPI_TOKEN`).  
+If both are empty on a Lightwell stage, the run fails fast in **Resolve credentials**.
+
+> Workflow dispatch inputs are visible to anyone who can see the Actions run metadata. Prefer short-lived tokens for public demos; rotate after the engagement if needed.
+
+## Repository secrets (optional, maintainers)
+
+| Secret | Purpose |
+|--------|---------|
+| `LIGHTWELL_PYPI_USER` | Default username when input left blank |
+| `LIGHTWELL_PYPI_TOKEN` | Default token when input left blank |
+| `PYPI_INDEX_URL` | Optional Artifactory virtual simple index |
+
+```bash
+# Example (maintainers only — never commit values)
+gh secret set LIGHTWELL_PYPI_USER --body '11009103|dasmlwsvc' --repo dasmlab/lw-tech-demo
+gh secret set LIGHTWELL_PYPI_TOKEN < /home/dasm/dasmlwsvc.token --repo dasmlab/lw-tech-demo
+```
+
+## Local env
 
 | Variable | Example | Notes |
 |----------|---------|-------|
-| `LIGHTWELL_PYPI_USER` | `11009103\|dasmlwsvc` | Format `<orgId>\|<service-account-name>` |
-| `LIGHTWELL_TOKEN_FILE` | `/home/dasm/dasmlwsvc.token` | Preferred over inlining the token |
-| `LIGHTWELL_PYPI_TOKEN` | _(from token file)_ | Password for basic auth |
-| `LIGHTWELL_REMEDIATED_SIMPLE` | `https://packages.redhat.com/lightwell/python/remediated/simple` | Patched `+rhlw.N` packages |
-| `LIGHTWELL_VALIDATED_SIMPLE` | `https://packages.redhat.com/lightwell/python/validated/simple` | Broad RH-built catalog |
-| `PYPI_INDEX_URL` | Artifactory virtual simple index | Prefer virtual that stacks both remotes |
-| `USE_LIGHTWELL` | `true` | Enables Lightwell/Artifactory Poetry sources |
-
-## Optional
-
-| Variable | Purpose |
-|----------|---------|
-| `LIGHTWELL_LENS_URL` | Browser URL for Lens upload demo |
-| `SNYK_TOKEN` | Only if demonstrating Snyk |
-| `ARTIFACTORY_URL` / `ARTIFACTORY_USER` / `ARTIFACTORY_PASSWORD` | Local Artifactory sandbox |
-| `NEXUS_URL` | Optional Nexus UI |
-
-## GitHub Actions secrets
-
-Set on `dasmlab/lw-tech-demo`:
-
-- `LIGHTWELL_PYPI_USER`
-- `LIGHTWELL_PYPI_TOKEN`
-- `PYPI_INDEX_URL` (Artifactory virtual when available)
-
-Repository variable: `USE_LIGHTWELL=true` for the remediated CI path.
-
-## Local env file
+| `LIGHTWELL_PYPI_USER` | `11009103\|dasmlwsvc` | Format `<orgId>\|<sa>` |
+| `LIGHTWELL_TOKEN_FILE` | `/home/dasm/dasmlwsvc.token` | Preferred locally |
+| `LIGHTWELL_PYPI_TOKEN` | _(token)_ | Or set directly |
+| `USE_LIGHTWELL` | `true` | Enables Lightwell Poetry sources |
 
 ```bash
 cp .env.example .env
-# token loaded from LIGHTWELL_TOKEN_FILE by scripts/load-lightwell-env.sh
+# scripts/load-lightwell-env.sh reads LIGHTWELL_TOKEN_FILE
 ```

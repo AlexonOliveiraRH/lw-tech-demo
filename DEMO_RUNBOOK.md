@@ -11,6 +11,8 @@
 
 Confirm: Artifactory sandbox or screen-share, Lightwell feed URL, FastAPI sample open, Trivy + SBOM scripts ready.
 
+**Preferred live path:** GitHub **Actions → Lightwell Demo → Run workflow** with pipeline `scan-build` (or stepwise `scan-before` / `build` / `scan-after`). Paste `lightwell_user` + `lightwell_token` in the form (or use repo secrets). Artifacts attach to the run for screen-share.
+
 ---
 
 ## 1. Repository Walkthrough (3 min)

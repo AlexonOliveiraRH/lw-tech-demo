@@ -1,0 +1,38 @@
+# Always-on CI: public PyPI path only (no Lightwell token required).
+# Demo stages with Lightwell live under Actions → "Lightwell Demo".
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Public Poetry + pytest
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/vulnerable-fastapi
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Install dependencies (public PyPI)
+        run: poetry install --no-interaction
+
+      - name: Show sqlparse pin
+        run: poetry show sqlparse
+
+      - name: Pytest
+        run: poetry run pytest -q
