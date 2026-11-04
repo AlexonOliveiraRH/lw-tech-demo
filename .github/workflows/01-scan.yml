@@ -27,14 +27,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # GitHub locks Job Summary writes per step in order — defer body until after upload
-      # so the download link can be the first thing on the page.
-      - name: Defer Job Summary body
+      # Runner only publishes whatever is written to $GITHUB_STEP_SUMMARY *during that step*.
+      # Clear it for middle steps so body markdown files accumulate without appearing yet;
+      # the final step restores the real path and writes Download first.
+      - name: Park Job Summary path
         run: |
           mkdir -p artifacts/live
-          : > artifacts/live/_summary_body.md
           echo "LW_REAL_STEP_SUMMARY=${GITHUB_STEP_SUMMARY}" >> "$GITHUB_ENV"
-          echo "GITHUB_STEP_SUMMARY=${GITHUB_WORKSPACE}/artifacts/live/_summary_body.md" >> "$GITHUB_ENV"
+          echo "GITHUB_STEP_SUMMARY=" >> "$GITHUB_ENV"
 
       - uses: actions/setup-python@v5
         with:
@@ -59,26 +59,31 @@ jobs:
       - uses: actions/upload-artifact@v4
         id: upload-scan-before
         with:
-          # Flat zip root: demo-report-before.html + sbom-before.cdx.json
           name: scan-before
           path: artifacts/bundle-before/
           if-no-files-found: warn
       - name: Job Summary (download first)
         env:
+          ARTIFACT_ID: ${{ steps.upload-scan-before.outputs.artifact-id }}
           ARTIFACT_URL: ${{ steps.upload-scan-before.outputs.artifact-url }}
         run: |
+          export GITHUB_STEP_SUMMARY="${LW_REAL_STEP_SUMMARY}"
+          if [[ -z "${ARTIFACT_URL}" && -n "${ARTIFACT_ID}" ]]; then
+            ARTIFACT_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_ID}"
+          fi
           {
             echo "## Download scan report and SBOM"
             echo ""
             if [[ -n "${ARTIFACT_URL}" ]]; then
               echo "[**Download zip**](${ARTIFACT_URL}) — \`demo-report-before.html\` + \`sbom-before.cdx.json\` at the zip root."
             else
-              echo "Artifact zip: see **Artifacts** at the bottom of this run (\`scan-before\`)."
+              echo "See **Artifacts** → \`scan-before\` at the bottom of this run."
             fi
             echo ""
             echo "Unzip → open the HTML → upload the SBOM to [Lens](https://console.redhat.com/lightwell/lens)."
             echo ""
             echo "---"
             echo ""
-            cat artifacts/live/_summary_body.md 2>/dev/null || true
-          } >> "${LW_REAL_STEP_SUMMARY}"
+            [[ -f artifacts/live/scan-before-summary.md ]] && cat artifacts/live/scan-before-summary.md && echo ""
+            [[ -f artifacts/live/demo-report-before.md ]] && cat artifacts/live/demo-report-before.md && echo ""
+          } >> "${GITHUB_STEP_SUMMARY}"

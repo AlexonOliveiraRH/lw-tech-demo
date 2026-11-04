@@ -27,7 +27,6 @@ on:
 permissions:
   contents: read
 
-# Intentionally do NOT read repo secrets for user/token — paste per run (fork-friendly).
 env:
   LIGHTWELL_PYPI_USER: ${{ inputs.lightwell_user }}
   LIGHTWELL_PYPI_TOKEN: ${{ inputs.lightwell_token }}
@@ -40,12 +39,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Defer Job Summary body
+      - name: Park Job Summary path
         run: |
           mkdir -p artifacts/live
           : > artifacts/live/_summary_body.md
           echo "LW_REAL_STEP_SUMMARY=${GITHUB_STEP_SUMMARY}" >> "$GITHUB_ENV"
-          echo "GITHUB_STEP_SUMMARY=${GITHUB_WORKSPACE}/artifacts/live/_summary_body.md" >> "$GITHUB_ENV"
+          echo "GITHUB_STEP_SUMMARY=" >> "$GITHUB_ENV"
 
       - uses: actions/setup-python@v5
         with:
@@ -65,7 +64,7 @@ jobs:
             echo "| Lightwell user | \`${{ inputs.lightwell_user }}\` |"
             echo "| Runner | \`${{ inputs.runner }}\` |"
             echo ""
-          } >> "$GITHUB_STEP_SUMMARY"
+          } >> artifacts/live/_summary_body.md
 
       - name: Install tools
         run: WITH_TRIVY=true ./scripts/ci-install-tools.sh
@@ -84,22 +83,23 @@ jobs:
       - name: Show remediated versions (+rhlw.1)
         working-directory: apps/vulnerable-fastapi
         run: |
-          echo "## Installed from Lightwell" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Package | Version |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|---------|---------|" >> "$GITHUB_STEP_SUMMARY"
+          BODY="${GITHUB_WORKSPACE}/artifacts/live/_summary_body.md"
+          echo "## Installed from Lightwell" >> "$BODY"
+          echo "" >> "$BODY"
+          echo "| Package | Version |" >> "$BODY"
+          echo "|---------|---------|" >> "$BODY"
           for pkg in sqlparse PyPDF2 tokenizers; do
             ver=$(poetry run python -c "import importlib.metadata as m; print(m.version('$pkg'))")
-            echo "| $pkg | \`$ver\` |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| $pkg | \`$ver\` |" >> "$BODY"
             echo "$pkg=$ver"
             case "$ver" in
               *+rhlw.*) ;;
               *) echo "::error::$pkg is not a Lightwell +rhlw build ($ver)"; exit 1 ;;
             esac
           done
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "**Remediated** feed → sqlparse / PyPDF2 / tokenizers (\`+rhlw.1\`)." >> "$GITHUB_STEP_SUMMARY"
-          echo "**Validated** feed → remaining catalog (FastAPI, httpx, …)." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$BODY"
+          echo "**Remediated** feed → sqlparse / PyPDF2 / tokenizers (\`+rhlw.1\`)." >> "$BODY"
+          echo "**Validated** feed → remaining catalog (FastAPI, httpx, …)." >> "$BODY"
 
       - name: Pytest (no app rewrite)
         working-directory: apps/vulnerable-fastapi
@@ -124,27 +124,33 @@ jobs:
       - uses: actions/upload-artifact@v4
         id: upload-remediate-proof
         with:
-          # Flat zip root: demo-report-after.html + sbom-after.cdx.json
           name: remediate-proof
           path: artifacts/bundle-after/
           if-no-files-found: warn
 
       - name: Job Summary (download first)
         env:
+          ARTIFACT_ID: ${{ steps.upload-remediate-proof.outputs.artifact-id }}
           ARTIFACT_URL: ${{ steps.upload-remediate-proof.outputs.artifact-url }}
         run: |
+          export GITHUB_STEP_SUMMARY="${LW_REAL_STEP_SUMMARY}"
+          if [[ -z "${ARTIFACT_URL}" && -n "${ARTIFACT_ID}" ]]; then
+            ARTIFACT_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_ID}"
+          fi
           {
             echo "## Download remediate report and SBOM"
             echo ""
             if [[ -n "${ARTIFACT_URL}" ]]; then
               echo "[**Download zip**](${ARTIFACT_URL}) — \`demo-report-after.html\` + \`sbom-after.cdx.json\` at the zip root."
             else
-              echo "Artifact zip: see **Artifacts** at the bottom of this run (\`remediate-proof\`)."
+              echo "See **Artifacts** → \`remediate-proof\` at the bottom of this run."
             fi
             echo ""
             echo "Unzip → open the HTML → upload the SBOM to [Lens](https://console.redhat.com/lightwell/lens)."
             echo ""
             echo "---"
             echo ""
-            cat artifacts/live/_summary_body.md 2>/dev/null || true
-          } >> "${LW_REAL_STEP_SUMMARY}"
+            [[ -f artifacts/live/_summary_body.md ]] && cat artifacts/live/_summary_body.md && echo ""
+            [[ -f artifacts/live/lightwell-proof.md ]] && cat artifacts/live/lightwell-proof.md && echo ""
+            [[ -f artifacts/live/demo-report-after.md ]] && cat artifacts/live/demo-report-after.md && echo ""
+          } >> "${GITHUB_STEP_SUMMARY}"
