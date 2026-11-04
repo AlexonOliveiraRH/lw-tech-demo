@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Lightwell Python Demo — after</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #171d25;
+    --text: #e7ecf3;
+    --muted: #9aa7b8;
+    --line: #2a3441;
+    --accent: #027a48;
+    --accent-soft: #ecfdf3;
+    --font: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: var(--font); background:
+      radial-gradient(1200px 600px at 10% -10%, #1b2838 0%, transparent 55%),
+      radial-gradient(900px 500px at 100% 0%, #1a2420 0%, transparent 50%),
+      var(--bg);
+    color: var(--text); line-height: 1.45;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+  header.hero {
+    border: 1px solid var(--line); background: linear-gradient(180deg, #1c2430, var(--panel));
+    border-radius: 18px; padding: 1.75rem 1.75rem 1.5rem; margin-bottom: 1.25rem;
+  }
+  .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: .72rem; color: var(--muted); }
+  h1 { margin: .35rem 0 .5rem; font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 650; }
+  .status {
+    display: inline-flex; align-items: center; gap: .5rem; font-weight: 700;
+    padding: .35rem .75rem; border-radius: 999px; font-size: .85rem;
+  }
+  .status.bad { background: #f044381a; color: #ffb4ab; border: 1px solid #f0443866; }
+  .status.good { background: #12b76a1a; color: #6ce9a6; border: 1px solid #12b76a66; }
+  .status.warn { background: #f790091a; color: #fec84b; border: 1px solid #f7900966; }
+  .blurb { color: var(--muted); max-width: 62ch; margin: .9rem 0 0; }
+  .meta { margin-top: 1rem; font-size: .85rem; color: var(--muted); }
+  .meta a { color: #84caff; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .85rem; margin: 1.1rem 0 1.4rem; }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.1rem;
+  }
+  .pkg { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .ver { margin: .35rem 0 .55rem; font-size: 1.15rem; }
+  code { font-family: var(--mono); font-size: .92em; }
+  .tag { font-size: .72rem; padding: .2rem .5rem; border-radius: 999px; border: 1px solid var(--line); }
+  .tag-bad { background: #f0443814; color: #ffb4ab; }
+  .tag-good { background: #12b76a14; color: #6ce9a6; }
+  .tag-warn { background: #f7900914; color: #fec84b; }
+  section {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1.1rem 1.2rem; margin-bottom: 1rem;
+  }
+  h2 { margin: 0 0 .75rem; font-size: 1.05rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: .45rem .35rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; }
+  .sev { color: #ffb4ab; font-weight: 650; }
+  .ok { color: #6ce9a6; }
+  .hint { color: var(--muted); font-size: .9rem; }
+  .cta {
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+    background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+    border-radius: 14px; padding: 1.1rem 1.25rem; margin-top: .4rem;
+  }
+  .cta strong { color: #fff; }
+  .steps { display: grid; gap: .45rem; margin: .6rem 0 0; padding-left: 1.1rem; color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="eyebrow">Lightwell Python Demo Report</div>
+      <h1>Remediated — Lightwell Network</h1>
+      <span class="status good">PASS</span>
+      <p class="blurb">Packages resolved from Lightwell <strong>Remediated</strong> (+rhlw.1) and <strong>Validated</strong> (catalog). No application rewrite. Upload the after SBOM to Lens and compare with the before inventory.</p>
+      <div class="meta">Generated 2026-11-04 05:26 UTC
+        
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card"><div class="pkg">sqlparse</div><div class="ver"><code>0.5.5+rhlw.1</code></div><span class="tag tag-good">Lightwell +rhlw</span></div><div class="card"><div class="pkg">PyPDF2</div><div class="ver"><code>3.0.1+rhlw.1</code></div><span class="tag tag-good">Lightwell +rhlw</span></div><div class="card"><div class="pkg">tokenizers</div><div class="ver"><code>0.23.1+rhlw.1</code></div><span class="tag tag-good">Lightwell +rhlw</span></div>
+    </div>
+
+    
+        <section>
+          <h2>pip-audit after Lightwell</h2>
+          <p class="ok">No known vulnerabilities found on public CVE records for these builds.</p>
+          <table>
+            <thead><tr><th>Package</th><th>Note</th></tr></thead>
+            <tbody><tr><td>pypdf2</td><td>pypdf2             Dependency not found on PyPI and could not be audited: pypdf2 (3.0.1+rhlw.1)</td></tr><tr><td>sqlparse</td><td>sqlparse           Dependency not found on PyPI and could not be audited: sqlparse (0.5.5+rhlw.1)</td></tr><tr><td>tokenizers</td><td>tokenizers         Dependency not found on PyPI and could not be audited: tokenizers (0.23.1+rhlw.1)</td></tr><tr><td>vulnerable-fastapi</td><td>vulnerable-fastapi Dependency not found on PyPI and could not be audited: vulnerable-fastapi (0.1.0)</td></tr></tbody>
+          </table>
+          <p class="hint">“Not found on PyPI” = these are <em>Lightwell Network</em> artifacts, not the vulnerable public wheels.</p>
+        </section>
+    
+        <section>
+          <h2>Trivy note</h2>
+          <p class="ok">Installed builds are <code>+rhlw.1</code> from Lightwell Remediated.</p>
+          <p class="hint">Some scanners still attach public CVE IDs to the upstream version string.
+          Prefer <strong>Lightwell origin</strong> (<code>+rhlw.1</code>) and pip-audit’s
+          <em>not found on PyPI</em>, then compare the after SBOM in Lens.</p>
+        </section>
+
+    <section class="cta">
+      <h2>Observation points</h2>
+      <ol class="steps">
+        <li>Open <code>demo-report-after.html</code> from the run artifacts (browser).</li>
+        <li>Upload <code>sbom-after.cdx.json</code> to <strong>Lightwell Lens</strong>.</li>
+        <li>Integration surface is the build remotes/index (minutes), not an application rewrite — compare before/after SBOMs in Lens.</li>
+      </ol>
+    </section>
+  </div>
+</body>
+</html>

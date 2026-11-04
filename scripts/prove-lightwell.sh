@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Produce a salesperson-friendly proof file + GitHub Step Summary:
+# Produce Lightwell proof markdown + GitHub Step Summary:
 #   1) remediated packages are +rhlw.1 from Lightwell Network
 #   2) other deps come from Lightwell Validated
 #   3) CVE findings before/after for the remediated set
@@ -14,11 +14,11 @@ PROOF="${OUT_DIR}/lightwell-proof.md"
 REMEDIATED_PKGS=(sqlparse PyPDF2 tokenizers)
 
 {
-  echo "# Lightwell demo proof"
+  echo "# Lightwell Python Demo — proof"
   echo
   echo "Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
   echo
-  echo "## What to call attention to"
+  echo "## Observation points"
   echo
   echo "1. **Before:** public pins — scanners show CVE noise on the remediated set."
   echo "2. **After:** same app, no code change — packages come from the **Lightwell Network**."
@@ -48,7 +48,7 @@ done
   echo
   echo "## Poetry lock — source attribution"
   echo
-  echo "These lines prove the resolver used Lightwell sources (not public PyPI):"
+  echo "These lines show the resolver used Lightwell sources (not public PyPI):"
   echo
   echo '```'
 } >> "${PROOF}"
@@ -109,16 +109,16 @@ if [[ -f "${AUDIT_AFTER}" ]]; then
   grep -iE 'sqlparse|pypdf|tokenizer|not found on PyPI|No known' "${AUDIT_AFTER}" | head -40 >> "${PROOF}" || echo "(see pip-audit-after.txt artifact)" >> "${PROOF}"
   echo '```' >> "${PROOF}"
   echo >> "${PROOF}"
-  echo "Screen-share line: *“These versions are \`+rhlw.1\` from Lightwell Remediated; the public CVE entries no longer apply to these binaries.”*" >> "${PROOF}"
+  echo "**Notable:** versions are \`+rhlw.1\` from Lightwell Remediated; public CVE entries no longer bind to these binaries." >> "${PROOF}"
 fi
 
 {
   echo
   echo "## SBOM for Lightwell Lens"
   echo
-  echo "After this run, download **\`sbom-after.cdx.json\`** and upload to Lens (compare with Step 1’s \`sbom-before.cdx.json\` hooks)."
+  echo "Download **\`sbom-after.cdx.json\`** and upload to Lens (compare with Step 1’s \`sbom-before.cdx.json\`)."
   echo
-  echo "## Pass/fail for the live demo"
+  echo "## Pass/fail"
   echo
   if [[ "${all_ok}" == "true" ]]; then
     echo "**PASS** — all three remediated packages installed as \`+rhlw.*\` from Lightwell."
@@ -126,7 +126,7 @@ fi
     echo "**FAIL** — one or more packages lack \`+rhlw\` local version; check token / Remediated feed."
   fi
   echo
-  echo "Open this file (and the Actions Job Summary) while screen-sharing."
+  echo "Also open **\`demo-report-after.html\`** from the run artifacts."
 } >> "${PROOF}"
 
 echo "Wrote ${PROOF}"

@@ -16,7 +16,7 @@ curl -sf -u admin:password http://localhost:8082/artifactory/api/system/ping
 
 UI: http://localhost:8082/ui/
 
-## Create remotes (UI — live talk track)
+## Create remotes (UI)
 
 ### 1) Python Remediated (highest priority)
 

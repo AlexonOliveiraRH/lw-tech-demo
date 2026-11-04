@@ -18,7 +18,7 @@ on:
 permissions:
   contents: read
 
-# Intentionally do NOT read repo secrets for user/token — salesperson pastes each time.
+# Intentionally do NOT read repo secrets for user/token — paste per run (fork-friendly).
 env:
   LIGHTWELL_PYPI_USER: ${{ inputs.lightwell_user }}
   LIGHTWELL_PYPI_TOKEN: ${{ inputs.lightwell_token }}

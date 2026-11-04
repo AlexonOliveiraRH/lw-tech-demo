@@ -69,7 +69,7 @@ Console has four repos; this demo uses the **two Python** feeds. Details: [docs/
 
 | Item | When |
 |------|------|
-| [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md) | Fuller talk track |
+| [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md) | Fuller step-by-step |
 | [docs/HOW_TO_RUN_DEMO_SLIDES.md](docs/HOW_TO_RUN_DEMO_SLIDES.md) | 6-slide “how to run” outline |
 | [sbom/README.md](sbom/README.md) | Lens upload notes |
 | [integration/artifactory](integration/artifactory/) | Local Artifactory sandbox |

@@ -1,4 +1,4 @@
-"""Acme Payments Gateway — Lightwell Part 2 sales demo app.
+"""Acme Payments Gateway — Lightwell Python demo app.
 
 Intentionally pins the three packages currently on Lightwell Python Remediated:
 sqlparse, PyPDF2, tokenizers. Narrate /deps before vs after remediate.

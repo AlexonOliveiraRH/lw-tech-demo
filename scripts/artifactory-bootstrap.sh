@@ -42,7 +42,7 @@ put_remote() {
       echo >&2
       echo "Artifactory OSS cannot create remote PyPI repos. Options:" >&2
       echo "  1) Apply a Pro/trial license to this sandbox" >&2
-      echo "  2) Screen-share the customer Pro Artifactory and create remotes in UI" >&2
+      echo "  2) In the customer Pro Artifactory UI, create remotes" >&2
       echo "  3) Demo the working direct Lightwell Poetry path (remediated + validated)" >&2
       echo "     USE_LIGHTWELL=true ./scripts/configure-poetry-source.sh" >&2
     fi

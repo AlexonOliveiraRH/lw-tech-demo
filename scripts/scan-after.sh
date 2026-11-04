@@ -53,7 +53,7 @@ echo "==> pip-audit AFTER"
   cd "${APP}"
   poetry run pip install -q pip-audit
   # +rhlw.1 builds are not on public PyPI — pip-audit reports them as unauditable
-  # (i.e. no longer matching the public CVE records). That is the sales proof.
+  # (i.e. no longer matching the public CVE records). That is the Lightwell origin proof.
   poetry run pip-audit -f columns 2>&1 | tee "${AUDIT}" || true
 )
 

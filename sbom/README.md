@@ -1,11 +1,11 @@
 # SBOM → Lightwell Lens
 
-Sales flow produces **two** CycloneDX files:
+The demo flow produces **two** CycloneDX files:
 
-| Stage | Workflow | Artifact file | Demo beat |
-|-------|----------|---------------|-----------|
-| **Before** | `1 · Scan (vulnerable)` | `sbom-before.cdx.json` | Upload to Lens → show catch / hooks on public pins |
-| **After** | `2 · Remediate (Lightwell)` | `sbom-after.cdx.json` | Upload to Lens → show `+rhlw.1` Lightwell Network inventory |
+| Stage | Workflow | Artifact file | Observation |
+|-------|----------|---------------|-------------|
+| **Before** | `1 · Scan (vulnerable)` | `sbom-before.cdx.json` | Upload to Lens → hooks on public pins |
+| **After** | `2 · Remediate (Lightwell)` | `sbom-after.cdx.json` | Upload to Lens → `+rhlw.1` Lightwell Network inventory |
 
 ## Generate locally
 
@@ -29,14 +29,14 @@ Lens skips entries without one (e.g. raw `poetry.lock` / filesystem path metadat
 
 ## Upload to Lens
 
-1. Open `${LIGHTWELL_LENS_URL}` (tenant provided for the engagement).
+1. Open `${LIGHTWELL_LENS_URL}` (or console.redhat.com → Lightwell → Lens).
 2. Upload the CycloneDX JSON from the Actions artifact (or `sbom/out/`).
-3. **Before:** show software inventory + automated hooks catching sqlparse / PyPDF2 / tokenizers.
-4. **After:** re-upload (or compare) the remediated SBOM — versions carry `+rhlw.1` from Lightwell Remediated.
+3. **Before:** inventory + hooks on sqlparse / PyPDF2 / tokenizers.
+4. **After:** compare the remediated SBOM — versions carry `+rhlw.1` from Lightwell Remediated.
 
-## Talk track
+## Notable
 
-> “Transparency for AppSec without forcing a new runtime scanner purchase for Day-1 remediation — Lens hooks on the before SBOM, then the after SBOM proves the Lightwell Network builds.”
+Lens on the before SBOM shows hooks; the after SBOM reflects Lightwell Network builds — transparency without rewriting the application.
 
 ## Formats
 
@@ -45,4 +45,4 @@ Lens skips entries without one (e.g. raw `poetry.lock` / filesystem path metadat
 | Syft | `cyclonedx-json` | `*.cdx.json` |
 | Trivy | `--format cyclonedx` | `*.cdx.json` |
 
-SPDX is acceptable if the Lens tenant expects it; adjust the script flag accordingly for that engagement.
+SPDX is acceptable if the Lens tenant expects it; adjust the script flag accordingly.

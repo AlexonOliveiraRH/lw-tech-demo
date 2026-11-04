@@ -92,7 +92,7 @@ echo "Stable: ${STABLE}"
 echo "Artifact copy: ${LIVE_COPY}"
 echo
 echo "${TALK}"
-echo "See sbom/README.md for the Lens talk track."
+echo "See sbom/README.md for Lens upload notes."
 
 if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
   {

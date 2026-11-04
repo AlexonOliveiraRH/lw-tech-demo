@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render a salesperson-friendly HTML (+ markdown) demo report.
+"""Render HTML (+ markdown) Lightwell Python demo reports.
 
 Usage:
   python3 scripts/render-demo-report.py before
@@ -145,10 +145,11 @@ def render(stage: str) -> tuple[Path, Path]:
         status_class = "bad"
         blurb = (
             "Same three packages Lightwell remediates. Scanners light up on the public builds. "
-            "Download the SBOM and upload it to Lightwell Lens to show the catch / hooks."
+            "Upload the before SBOM to Lightwell Lens to observe hooks on the public inventory."
         )
         next_step = (
-            "Next: run <strong>2 · Remediate (Lightwell)</strong> — paste orgId|sa + token for this run only."
+            "Next step in the flow: run <strong>2 · Remediate (Lightwell)</strong> "
+            "(orgId|sa + token for this run)."
         )
         sbom_name = "sbom-before.cdx.json"
         accent = "#b42318"
@@ -160,9 +161,12 @@ def render(stage: str) -> tuple[Path, Path]:
         blurb = (
             "Packages resolved from Lightwell <strong>Remediated</strong> (+rhlw.1) and "
             "<strong>Validated</strong> (catalog). No application rewrite. "
-            "Upload the after SBOM to Lens for the clean inventory."
+            "Upload the after SBOM to Lens and compare with the before inventory."
         )
-        next_step = "Close: remotes change in minutes — ask who owns Artifactory virtuals + pilot service."
+        next_step = (
+            "Integration surface is the build remotes/index (minutes), not an application rewrite — "
+            "compare before/after SBOMs in Lens."
+        )
         sbom_name = "sbom-after.cdx.json"
         accent = "#027a48"
         accent_soft = "#ecfdf3"
@@ -221,14 +225,14 @@ def render(stage: str) -> tuple[Path, Path]:
     trivy_html = ""
     if stage == "after" and lightwell:
         # Trivy often still maps public CVE IDs onto +rhlw.* by upstream version string.
-        # Sales proof is package origin (+rhlw / Lightwell source) + pip-audit "not on PyPI".
+        # Origin proof is +rhlw / Lightwell source + pip-audit "not on PyPI".
         trivy_html = """
         <section>
           <h2>Trivy note</h2>
           <p class="ok">Installed builds are <code>+rhlw.1</code> from Lightwell Remediated.</p>
           <p class="hint">Some scanners still attach public CVE IDs to the upstream version string.
-          On the call, lead with <strong>Lightwell origin</strong> and pip-audit’s
-          <em>not found on PyPI</em> — then Lens on the after SBOM.</p>
+          Prefer <strong>Lightwell origin</strong> (<code>+rhlw.1</code>) and pip-audit’s
+          <em>not found on PyPI</em>, then compare the after SBOM in Lens.</p>
         </section>"""
     elif trivy_rows:
         cells = "".join(
@@ -253,7 +257,7 @@ def render(stage: str) -> tuple[Path, Path]:
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Lightwell demo — {esc(stage)}</title>
+<title>Lightwell Python Demo — {esc(stage)}</title>
 <style>
   :root {{
     --bg: #0f1419;
@@ -326,7 +330,7 @@ def render(stage: str) -> tuple[Path, Path]:
 <body>
   <div class="wrap">
     <header class="hero">
-      <div class="eyebrow">Lightwell Part 2 · sales demo report</div>
+      <div class="eyebrow">Lightwell Python Demo Report</div>
       <h1>{esc(headline)}</h1>
       <span class="status {status_class}">{esc(status)}</span>
       <p class="blurb">{blurb}</p>
@@ -343,9 +347,9 @@ def render(stage: str) -> tuple[Path, Path]:
     {trivy_html}
 
     <section class="cta">
-      <h2>What to call attention to</h2>
+      <h2>Observation points</h2>
       <ol class="steps">
-        <li>Screen-share this report (download artifact <code>demo-report-{esc(stage)}.html</code> and open in a browser).</li>
+        <li>Open <code>demo-report-{esc(stage)}.html</code> from the run artifacts (browser).</li>
         <li>Upload <code>{esc(sbom_name)}</code> to <strong>Lightwell Lens</strong>.</li>
         <li>{next_step}</li>
       </ol>
@@ -361,7 +365,7 @@ def render(stage: str) -> tuple[Path, Path]:
 
     # Compact markdown for Job Summary (glanceable without opening artifacts)
     md_lines = [
-        f"# Demo report — {headline}",
+        f"# Lightwell Python Demo Report — {headline}",
         "",
         f"**Status:** `{status}` · generated {stamp}",
         "",
@@ -387,9 +391,10 @@ def render(stage: str) -> tuple[Path, Path]:
             "",
         ]
     md_lines += [
-        "### Visual report",
+        "### Observation points",
         "",
-        f"Download artifact **`demo-report-{stage}.html`** and open it in a browser (easier than reading logs).",
+        f"- Open **`demo-report-{stage}.html`** from the artifacts (browser).",
+        f"- Upload **`{sbom_name}`** to Lightwell Lens.",
         "",
     ]
     md_path = LIVE / f"demo-report-{stage}.md"

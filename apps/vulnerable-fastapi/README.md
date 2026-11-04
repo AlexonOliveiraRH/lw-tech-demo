@@ -1,6 +1,6 @@
 # vulnerable-fastapi
 
-Sample FastAPI service for the Lightwell Part 2 demo.
+Sample FastAPI service for the Lightwell Python technical demo.
 
 ## Why it is “vulnerable”
 
