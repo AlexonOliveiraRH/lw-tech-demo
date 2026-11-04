@@ -1,0 +1,35 @@
+# Sales step 1 — no Lightwell auth required.
+# Shows CVE noise on the public pins for sqlparse / PyPDF2 / tokenizers.
+
+name: "1 · Scan (vulnerable)"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Scan vulnerable pins
+    runs-on: [self-hosted]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install tools
+        run: WITH_TRIVY=true ./scripts/ci-install-tools.sh
+      - name: Scan before
+        env:
+          USE_LIGHTWELL: "false"
+        run: ./scripts/scan-before.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scan-before
+          path: |
+            artifacts/live/scan-before-summary.md
+            artifacts/live/pip-audit-before.txt
+            artifacts/live/trivy-before.txt
+            artifacts/live/trivy-before.json
+          if-no-files-found: warn

@@ -17,6 +17,10 @@ if ! command -v poetry >/dev/null 2>&1; then
 fi
 poetry --version
 
+# Scanner used in before/after sales proof (public PyPI; may be absent from Validated).
+python3 -m pip install --user -q "pip-audit>=2.7"
+export PATH="$(python3 -m site --user-base)/bin:${PATH}"
+
 if [[ "${WITH_TRIVY}" == "true" ]]; then
   if ! command -v trivy >/dev/null 2>&1; then
     VER="${TRIVY_VERSION:-0.76.1}"

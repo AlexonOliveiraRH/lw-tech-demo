@@ -1,0 +1,91 @@
+# Sales step 2 — paste Lightwell user + token for THIS RUN only (not stored in the repo).
+# Proves packages came from Lightwell Network (+rhlw.1) and CVE records no longer bind.
+
+name: "2 · Remediate (Lightwell)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      lightwell_user:
+        description: "REQUIRED — Lightwell username (orgId|service-account-name), e.g. 11009103|dasmlwsvc"
+        type: string
+        required: true
+      lightwell_token:
+        description: "REQUIRED — Lightwell service-account token for this run only"
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+# Intentionally do NOT read repo secrets for user/token — salesperson pastes each time.
+env:
+  LIGHTWELL_PYPI_USER: ${{ inputs.lightwell_user }}
+  LIGHTWELL_PYPI_TOKEN: ${{ inputs.lightwell_token }}
+  USE_LIGHTWELL: "true"
+
+jobs:
+  remediate:
+    name: Remediate via Lightwell Network
+    runs-on: [self-hosted]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Mask token
+        run: echo "::add-mask::${LIGHTWELL_PYPI_TOKEN}"
+
+      - name: Install tools
+        run: WITH_TRIVY=true ./scripts/ci-install-tools.sh
+
+      - name: Configure Lightwell Validated + Remediated
+        run: |
+          unset PYPI_INDEX_URL || true
+          ./scripts/configure-poetry-source.sh
+
+      - name: Resolve + install from Lightwell
+        working-directory: apps/vulnerable-fastapi
+        run: |
+          poetry lock --no-interaction
+          poetry install --no-interaction
+
+      - name: Show remediated versions (+rhlw.1)
+        working-directory: apps/vulnerable-fastapi
+        run: |
+          echo "## Installed from Lightwell" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Package | Version |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---------|---------|" >> "$GITHUB_STEP_SUMMARY"
+          for pkg in sqlparse PyPDF2 tokenizers; do
+            ver=$(poetry run python -c "import importlib.metadata as m; print(m.version('$pkg'))")
+            echo "| $pkg | \`$ver\` |" >> "$GITHUB_STEP_SUMMARY"
+            echo "$pkg=$ver"
+            case "$ver" in
+              *+rhlw.*) ;;
+              *) echo "::error::$pkg is not a Lightwell +rhlw build ($ver)"; exit 1 ;;
+            esac
+          done
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Remediated** feed → sqlparse / PyPDF2 / tokenizers (\`+rhlw.1\`)." >> "$GITHUB_STEP_SUMMARY"
+          echo "**Validated** feed → remaining catalog (FastAPI, httpx, …)." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Pytest (no app rewrite)
+        working-directory: apps/vulnerable-fastapi
+        run: poetry run pytest -q
+
+      - name: Scan after + Lightwell proof
+        run: ./scripts/scan-after.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: remediate-proof
+          path: |
+            artifacts/live/lightwell-proof.md
+            artifacts/live/pip-audit-after.txt
+            artifacts/live/trivy-after.txt
+            artifacts/live/trivy-after.json
+            apps/vulnerable-fastapi/poetry.lock
+          if-no-files-found: warn

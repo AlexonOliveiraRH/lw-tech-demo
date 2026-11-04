@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Segment 4 — Trivy scan on public-PyPI resolved tree (vulnerable path).
+# BEFORE: public vulnerable pins — show CVE noise on the Lightwell remediated set.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -7,13 +7,10 @@ APP="${ROOT}/apps/vulnerable-fastapi"
 OUT_DIR="${ROOT}/artifacts/live"
 mkdir -p "${OUT_DIR}"
 
-if ! command -v trivy >/dev/null 2>&1; then
-  echo "trivy not found on PATH" >&2
-  exit 1
-fi
-
-# Ensure vulnerable pin is installed from public index
+# shellcheck disable=SC1091
+source "${ROOT}/scripts/load-lightwell-env.sh" 2>/dev/null || true
 export USE_LIGHTWELL=false
+
 (
   cd "${APP}"
   python3 - <<'PY'
@@ -27,7 +24,14 @@ text = re.sub(
     text,
     flags=re.S,
 )
-text, _ = re.subn(r"^sqlparse\s*=\s*.*$", 'sqlparse = "0.5.5"', text, count=1, flags=re.M)
+for name, line in (
+    ("sqlparse", 'sqlparse = "0.5.5"'),
+    ("PyPDF2", 'PyPDF2 = "3.0.1"'),
+    ("tokenizers", 'tokenizers = "0.23.1"'),
+):
+    text, n = re.subn(rf"^{name}\s*=\s*.*$", line, text, count=1, flags=re.M)
+    if n != 1:
+        raise SystemExit(f"missing pin for {name}")
 p.write_text(text.rstrip() + "\n")
 PY
   poetry lock --no-interaction
@@ -36,26 +40,50 @@ PY
 
 REPORT="${OUT_DIR}/trivy-before.txt"
 JSON="${OUT_DIR}/trivy-before.json"
+AUDIT="${OUT_DIR}/pip-audit-before.txt"
+SUMMARY="${OUT_DIR}/scan-before-summary.md"
 
-echo "==> Trivy BEFORE (public PyPI / vulnerable pin)"
-trivy fs --scanners vuln --pkg-types library \
-  --severity HIGH,CRITICAL \
-  --format table --output "${REPORT}" \
-  "${APP}" || true
-trivy fs --scanners vuln --pkg-types library \
-  --severity HIGH,CRITICAL \
-  --format json --output "${JSON}" \
-  "${APP}" || true
-
-# Highlight sqlparse findings for narration
-if command -v jq >/dev/null 2>&1 && [[ -f "${JSON}" ]]; then
-  echo "==> sqlparse-related findings (summary)"
-  jq -r '
-    .Results[]? | .Vulnerabilities[]? |
-    select(.PkgName == "sqlparse") |
-    "\(.VulnerabilityID) \(.Severity) \(.PkgName) \(.InstalledVersion)"
-  ' "${JSON}" 2>/dev/null | sort -u | head -40 || true
+if command -v trivy >/dev/null 2>&1; then
+  echo "==> Trivy BEFORE"
+  trivy fs --scanners vuln --pkg-types library \
+    --severity HIGH,CRITICAL \
+    --format table --output "${REPORT}" \
+    "${APP}" || true
+  trivy fs --scanners vuln --pkg-types library \
+    --severity HIGH,CRITICAL \
+    --format json --output "${JSON}" \
+    "${APP}" || true
 fi
 
-echo "Wrote ${REPORT}"
-cat "${REPORT}"
+echo "==> pip-audit BEFORE (catches PyPDF2 + sqlparse)"
+(
+  cd "${APP}"
+  # Audit the venv packages (pip-audit on PATH from ci-install-tools / pip --user)
+  poetry run pip install -q pip-audit
+  poetry run pip-audit -f columns 2>&1 | tee "${AUDIT}" || true
+)
+
+{
+  echo "# Scan BEFORE — public PyPI (vulnerable)"
+  echo
+  echo "App pins Lightwell's Python Remediated set at **public** versions:"
+  echo
+  echo "| Package | Pin |"
+  echo "|---------|-----|"
+  echo "| sqlparse | 0.5.5 |"
+  echo "| PyPDF2 | 3.0.1 |"
+  echo "| tokenizers | 0.23.1 |"
+  echo
+  echo "## Findings on the remediated set"
+  echo
+  echo '```'
+  grep -iE 'sqlparse|pypdf|tokenizer' "${AUDIT}" || echo "(see full pip-audit / trivy artifacts)"
+  echo '```'
+  echo
+  echo "Next: run **Remediate with Lightwell** and paste your service-account user + token."
+} > "${SUMMARY}"
+
+cat "${SUMMARY}"
+if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+  cat "${SUMMARY}" >> "${GITHUB_STEP_SUMMARY}"
+fi

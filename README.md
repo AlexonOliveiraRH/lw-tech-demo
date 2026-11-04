@@ -1,130 +1,66 @@
 # Lightwell Part 2 Technical Demo Kit
 
-Public demo assets for the **20-minute AppSec Lead & Artifactory Administrators** technical demonstration.
+**Audience:** salesperson / SSA running a live AppSec + Artifactory demo  
+**Goal:** click through GitHub Actions, show CVE noise, then remediate via the **Lightwell Network** — no app rewrite.
 
-Primary goal: prove integrating Lightwell into a Python build pipeline takes minutes, works with Poetry/Pipenv/Artifactory, and eliminates vulnerability noise on eligible packages — without an application rewrite.
+Public repo: [dasmlab/lw-tech-demo](https://github.com/dasmlab/lw-tech-demo)
 
-CISO / Part 1 slide narrative lives elsewhere; this repo is the live demo kit and runbook.
+---
 
-## Run the demo from GitHub Actions (preferred)
+## Sales click-path (do this)
 
-Less CLI: drive each stage from the Actions UI.
+### Step 1 — Scan (no login to Lightwell)
 
-1. Open **[Actions → Lightwell Demo](https://github.com/dasmlab/lw-tech-demo/actions/workflows/demo.yml)** → **Run workflow**
-2. Choose **pipeline**:
+1. Open **[Actions → 1 · Scan (vulnerable)](https://github.com/dasmlab/lw-tech-demo/actions/workflows/01-scan.yml)**
+2. Click **Run workflow** → **Run workflow**
+3. When green, open the run → **Job summary** and artifact **`scan-before`**
+4. **Say:** “Same three packages Lightwell remediates today — sqlparse, PyPDF2, tokenizers — scanners find CVE noise on the public builds.”
 
-| Pipeline | What runs |
-|----------|-----------|
-| `scan-before` | Trivy on public vulnerable pin |
-| `build` | Poetry install + pytest (Lightwell optional via checkbox) |
-| `scan-after` | Lightwell resolve + Trivy after |
-| `test` | Same as build (explicit test label) |
-| `scan-build` | scan-before → Lightwell build/test → scan-after |
-| `full` | scan-build + CycloneDX SBOM artifact |
-| `publish` | Lightwell build + SBOM upload |
+### Step 2 — Remediate (paste token for this run only)
 
-3. Provide credentials for Lightwell stages (`build` with Lightwell, `scan-after`, `scan-build`, `full`, `publish`):
-   - **lightwell_user** — `orgId|service-account-name` (e.g. `11009103|dasmlwsvc`)
-   - **lightwell_token** — service account token  
-   Or leave blank if the repo has secrets `LIGHTWELL_PYPI_USER` / `LIGHTWELL_PYPI_TOKEN` (maintainers / private forks).
+1. Open **[Actions → 2 · Remediate (Lightwell)](https://github.com/dasmlab/lw-tech-demo/actions/workflows/02-remediate.yml)**
+2. Click **Run workflow**
+3. Fill in (required every time — not stored in this public repo):
+   - **lightwell_user** — `orgId|service-account-name` (example shape: `11009103|dasmlwsvc`)
+   - **lightwell_token** — service account token from Lightwell Console
+4. Run → open **Job summary**
+5. **Say / point at:**
+   - Versions are now **`+rhlw.1`** → built by the **Lightwell Network**
+   - **Remediated** feed = those three patched packages  
+   - **Validated** feed = the rest of the RH-built catalog (FastAPI, etc.)
+   - pip-audit no longer treats them as the public vulnerable PyPI artifacts  
+   - Tests still pass — **no application rewrite**
 
-Forks and external runners paste their own user+token in the form each run — nothing Lightwell-secret is committed to this public repo.
+Artifacts to screen-share: **`remediate-proof`** → `lightwell-proof.md`
 
-Reports land under the run’s **Artifacts** (`trivy-before`, `trivy-after`, `sbom-cyclonedx`).
+---
 
-PR/push CI (`CI` workflow) only runs the **public** Poetry+pytest path — no token required.
+## What the app is pinning
 
-## 20-minute agenda
+| Package | Public pin (Step 1) | After Lightwell (Step 2) |
+|---------|---------------------|---------------------------|
+| sqlparse | `0.5.5` | `0.5.5+rhlw.1` from **Remediated** |
+| PyPDF2 | `3.0.1` | `3.0.1+rhlw.1` from **Remediated** |
+| tokenizers | `0.23.1` | `0.23.1+rhlw.1` from **Remediated** |
+| FastAPI / httpx / … | public or Validated | **Validated** catalog |
 
-| # | Segment | Mins | Owner focus |
-|---|---------|------|-------------|
-| 0 | Setup check / agenda | 1 | SSA |
-| 1 | PyPI feed walkthrough | 3 | AppSec + Artifactory |
-| 2 | Artifactory remote + Python tooling | 5 | Artifactory Admin |
-| 3 | Remediation build (FastAPI + pytest) | 5 | AppSec / Eng |
-| 4 | Scanner before/after | 3 | AppSec |
-| 5 | Lightwell Lens + SBOM/VEX | 2 | AppSec |
-| 6 | Recap → next steps | 1 | SSA |
+Lightwell Console exposes **four** repos (Python Remediated, Python Validated, Java Remediated, Java). This demo uses the **two Python** feeds. Details: [docs/lightwell-feeds.md](docs/lightwell-feeds.md)
 
-Full speaker script: [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md)
+---
 
-## Lightwell feeds (remember: four Console repos)
+## Optional deeper toolkit
 
-Python demo stacks **two** feeds; Java counterparts exist for Artifactory admins:
-
-| Feed | Role |
+| Item | When |
 |------|------|
-| **Python Remediated** | Patched `+rhlw.N` (e.g. `sqlparse-0.5.5+rhlw.1`) |
-| **Python Validated** | Broad RH-built catalog (~2400 pkgs) |
-| Java Remediated / Java Validated | Same pattern — out of scope for this kit |
+| [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md) | Full 20‑minute talk track |
+| [Lightwell Demo](https://github.com/dasmlab/lw-tech-demo/actions/workflows/demo.yml) workflow | Composite `scan-build` / `full` for power users |
+| [integration/artifactory](integration/artifactory/) | Local Artifactory OSS sandbox (Pro needed for remotes) |
+| Local scripts | `./scripts/scan-before.sh` then `USE_LIGHTWELL=true ./scripts/scan-after.sh` |
 
-Details: [docs/lightwell-feeds.md](docs/lightwell-feeds.md)
+PR/push **CI** only runs public Poetry + pytest (no token).
 
-## Quick start
+---
 
-```bash
-cp .env.example .env   # uses 11009103|dasmlwsvc + /home/dasm/dasmlwsvc.token
+## Secrets note
 
-# Before: public / validated vulnerable pin
-cd apps/vulnerable-fastapi && poetry install && poetry run pytest
-
-# After: Lightwell remediated (primary) + validated (supplemental)
-cd ../..
-export USE_LIGHTWELL=true
-./scripts/configure-poetry-source.sh
-cd apps/vulnerable-fastapi && poetry lock && poetry install && poetry show sqlparse && poetry run pytest
-
-./scripts/scan-before.sh
-./scripts/scan-after.sh
-./scripts/sbom-generate.sh
-```
-
-Artifactory (two remotes → one virtual): `integration/artifactory/SETUP.md` + `./scripts/artifactory-bootstrap.sh`  
-Nexus (optional / mTLS caveat): `integration/nexus/SETUP.md`
-
-## Repo map
-
-```
-apps/vulnerable-fastapi/   sqlparse==0.5.5 pin + FastAPI + pytest
-integration/artifactory/   Compose + remediated/validated remotes
-integration/nexus/         Optional Nexus compose
-integration/poetry|pipenv|pip/
-docs/lightwell-feeds.md    Four-repo / two-Python explanation
-scripts/                   Demo beat helpers
-```
-
-## Demo prep checklist
-
-- [ ] Service account `11009103|dasmlwsvc` + token file validated against remediated **and** validated
-- [ ] Artifactory sandbox with **both** Python remotes (or screen-share admin access)
-- [ ] Sample FastAPI app + Poetry lock with intentional vulnerable pin (`sqlparse==0.5.5`)
-- [ ] GitHub Actions (or local) pytest green path ready
-- [ ] Trivy CLI ready for before/after
-- [ ] Syft or Trivy SBOM generation ready (`./scripts/sbom-generate.sh`)
-- [ ] Lightwell Lens tenant / upload path ready (`LIGHTWELL_LENS_URL`)
-- [ ] Backup recording / sample reports if live Artifactory is blocked
-
-## Success criteria (say out loud at end)
-
-1. Remote repo created in minutes
-2. Poetry/Pipenv resolve through Artifactory → Lightwell
-3. Tests pass on remediated dependency
-4. Scanner delta visible
-5. SBOM visible in Lens with VEX context
-
-## Secrets / env
-
-| Name | Where | Purpose |
-|------|-------|---------|
-| `LIGHTWELL_PYPI_USER` | env / GH secret | `11009103\|dasmlwsvc` |
-| `LIGHTWELL_PYPI_TOKEN` / token file | env / GH secret | Service account token |
-| `LIGHTWELL_REMEDIATED_*` / `VALIDATED_*` | env | Two Python feed URLs |
-| `PYPI_INDEX_URL` | env / GH secret | Artifactory virtual simple index when ready |
-| `USE_LIGHTWELL` | env / GH var | `true` to enable Lightwell sources |
-| `LIGHTWELL_LENS_URL` | env / docs | Lens upload tenant |
-
-Never commit tokens. See [docs/secrets.md](docs/secrets.md).
-
-## License
-
-Demo material for Lightwell SSA engagement rehearsal. Public at [dasmlab/lw-tech-demo](https://github.com/dasmlab/lw-tech-demo).
+Step 2 asks for the token **in the workflow form** so forks and sales laptops stay agnostic — nothing Lightwell-secret is committed here. Maintainers may still set repo secrets for other composite workflows; the Remediate sales job intentionally uses the pasted inputs for that run only.

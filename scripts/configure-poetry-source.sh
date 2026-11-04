@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# Wire Poetry to Lightwell:
-#   - Direct: validated = primary catalog; remediated = explicit source for sqlparse
-#   - Artifactory virtual: single primary (virtual already stacks remotes)
+# Wire Poetry to Lightwell Python Validated (catalog) + Remediated (explicit pins).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -33,8 +31,6 @@ rem = sys.argv[4].rstrip("/")
 val = sys.argv[5].rstrip("/")
 
 text = path.read_text()
-
-# Strip any previous demo source block
 text = re.sub(
     r"\n?# BEGIN LIGHTWELL DEMO SOURCE\n.*?# END LIGHTWELL DEMO SOURCE\n?",
     "\n",
@@ -42,8 +38,13 @@ text = re.sub(
     flags=re.S,
 )
 
+# Public-style pins (Artifactory virtual owns routing) vs explicit remediated sources.
 if use_artifactory:
-    sqlparse_line = 'sqlparse = "0.5.5"'
+    pins = {
+        "sqlparse": 'sqlparse = "0.5.5"',
+        "PyPDF2": 'PyPDF2 = "3.0.1"',
+        "tokenizers": 'tokenizers = "0.23.1"',
+    }
     block = f"""
 # BEGIN LIGHTWELL DEMO SOURCE
 [[tool.poetry.source]]
@@ -53,9 +54,15 @@ priority = "primary"
 # END LIGHTWELL DEMO SOURCE
 """
 else:
-    sqlparse_line = 'sqlparse = { version = "0.5.5", source = "lightwell-remediated" }'
+    pins = {
+        "sqlparse": 'sqlparse = { version = "0.5.5", source = "lightwell-remediated" }',
+        "PyPDF2": 'PyPDF2 = { version = "3.0.1", source = "lightwell-remediated" }',
+        "tokenizers": 'tokenizers = { version = "0.23.1", source = "lightwell-remediated" }',
+    }
     block = f"""
 # BEGIN LIGHTWELL DEMO SOURCE
+# Validated = broad RH-built catalog (FastAPI, httpx, …)
+# Remediated = CVE-patched +rhlw.N for eligible pins (sqlparse, PyPDF2, tokenizers)
 [[tool.poetry.source]]
 name = "lightwell-validated"
 url = "{val}"
@@ -68,12 +75,12 @@ priority = "explicit"
 # END LIGHTWELL DEMO SOURCE
 """
 
-text, n = re.subn(r"^sqlparse\s*=\s*.*$", sqlparse_line, text, count=1, flags=re.M)
-if n != 1:
-    raise SystemExit("sqlparse dependency line not found or duplicated")
+for name, line in pins.items():
+    text, n = re.subn(rf"^{re.escape(name)}\s*=\s*.*$", line, text, count=1, flags=re.M)
+    if n != 1:
+        raise SystemExit(f"{name} dependency line not found or duplicated")
 
-text = text.rstrip() + "\n" + block
-path.write_text(text)
+path.write_text(text.rstrip() + "\n" + block)
 print("Wrote Lightwell sources; artifactory_virtual=", use_artifactory)
 PY
 
@@ -81,12 +88,11 @@ if [[ "${use_artifactory_virtual}" == "true" ]]; then
   echo "Poetry → Artifactory virtual ${PYPI_INDEX_URL}"
   if [[ -n "${ARTIFACTORY_USER:-}" && -n "${ARTIFACTORY_PASSWORD:-}" ]]; then
     poetry -C "${APP}" config http-basic.lightwell "${ARTIFACTORY_USER}" "${ARTIFACTORY_PASSWORD}"
-  elif [[ -n "${LIGHTWELL_PYPI_USER:-}" && -n "${LIGHTWELL_PYPI_TOKEN:-}" ]]; then
+  else
     poetry -C "${APP}" config http-basic.lightwell "${LIGHTWELL_PYPI_USER}" "${LIGHTWELL_PYPI_TOKEN}"
   fi
 else
-  echo "Poetry → validated (primary) + remediated (explicit sqlparse)"
+  echo "Poetry → Validated (catalog) + Remediated (sqlparse, PyPDF2, tokenizers)"
   poetry -C "${APP}" config http-basic.lightwell-validated "${LIGHTWELL_PYPI_USER}" "${LIGHTWELL_PYPI_TOKEN}"
   poetry -C "${APP}" config http-basic.lightwell-remediated "${LIGHTWELL_PYPI_USER}" "${LIGHTWELL_PYPI_TOKEN}"
-  echo "poetry http-basic for validated + remediated (user=${LIGHTWELL_PYPI_USER})"
 fi

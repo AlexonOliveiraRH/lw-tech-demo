@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Segment 4 — Trivy scan after Artifactory → Lightwell resolve.
+# AFTER: Lightwell Validated + Remediated — prove +rhlw.1 and CVE drop for rem set.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -8,23 +8,17 @@ OUT_DIR="${ROOT}/artifacts/live"
 SAMPLE="${ROOT}/artifacts/sample-reports"
 mkdir -p "${OUT_DIR}"
 
-if ! command -v trivy >/dev/null 2>&1; then
-  echo "trivy not found on PATH" >&2
-  exit 1
-fi
-
 # shellcheck disable=SC1091
 source "${ROOT}/scripts/load-lightwell-env.sh"
 
 if [[ "${USE_LIGHTWELL:-false}" != "true" ]]; then
-  echo "USE_LIGHTWELL not true — showing sample AFTER report for backup narration:"
-  if [[ -f "${SAMPLE}/trivy-after.txt" ]]; then
-    cat "${SAMPLE}/trivy-after.txt"
-  else
-    echo "(no sample report yet)" >&2
-    exit 1
-  fi
-  exit 0
+  echo "USE_LIGHTWELL not true — cannot prove Lightwell path." >&2
+  exit 1
+fi
+
+if [[ -z "${LIGHTWELL_PYPI_TOKEN:-}" || -z "${LIGHTWELL_PYPI_USER:-}" ]]; then
+  echo "LIGHTWELL_PYPI_USER and LIGHTWELL_PYPI_TOKEN required" >&2
+  exit 1
 fi
 
 "${ROOT}/scripts/configure-poetry-source.sh"
@@ -32,29 +26,37 @@ fi
   cd "${APP}"
   poetry lock --no-interaction
   poetry install --no-interaction
+  echo "==> remediated set versions"
+  for pkg in sqlparse PyPDF2 tokenizers; do
+    poetry run python -c "import importlib.metadata as m; print(f'{pkg}={m.version(\"${pkg}\")}')"
+  done
 )
 
 REPORT="${OUT_DIR}/trivy-after.txt"
 JSON="${OUT_DIR}/trivy-after.json"
+AUDIT="${OUT_DIR}/pip-audit-after.txt"
 
-echo "==> Trivy AFTER (Artifactory → Lightwell)"
-trivy fs --scanners vuln --pkg-types library \
-  --severity HIGH,CRITICAL \
-  --format table --output "${REPORT}" \
-  "${APP}" || true
-trivy fs --scanners vuln --pkg-types library \
-  --severity HIGH,CRITICAL \
-  --format json --output "${JSON}" \
-  "${APP}" || true
-
-if command -v jq >/dev/null 2>&1 && [[ -f "${JSON}" ]]; then
-  echo "==> sqlparse-related findings (summary)"
-  jq -r '
-    .Results[]? | .Vulnerabilities[]? |
-    select(.PkgName == "sqlparse") |
-    "\(.VulnerabilityID) \(.Severity) \(.PkgName) \(.InstalledVersion)"
-  ' "${JSON}" 2>/dev/null | sort -u | head -40 || echo "(none)"
+if command -v trivy >/dev/null 2>&1; then
+  echo "==> Trivy AFTER"
+  trivy fs --scanners vuln --pkg-types library \
+    --severity HIGH,CRITICAL \
+    --format table --output "${REPORT}" \
+    "${APP}" || true
+  trivy fs --scanners vuln --pkg-types library \
+    --severity HIGH,CRITICAL \
+    --format json --output "${JSON}" \
+    "${APP}" || true
 fi
 
-echo "Wrote ${REPORT}"
-cat "${REPORT}"
+echo "==> pip-audit AFTER"
+(
+  cd "${APP}"
+  poetry run pip install -q pip-audit
+  # +rhlw.1 builds are not on public PyPI — pip-audit reports them as unauditable
+  # (i.e. no longer matching the public CVE records). That is the sales proof.
+  poetry run pip-audit -f columns 2>&1 | tee "${AUDIT}" || true
+)
+
+"${ROOT}/scripts/prove-lightwell.sh"
+
+cp -f "${OUT_DIR}/lightwell-proof.md" "${SAMPLE}/lightwell-proof.md" 2>/dev/null || true
