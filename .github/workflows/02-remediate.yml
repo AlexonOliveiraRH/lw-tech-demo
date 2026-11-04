@@ -115,8 +115,24 @@ jobs:
         run: ./scripts/stage-artifact-bundle.sh after
 
       - uses: actions/upload-artifact@v4
+        id: upload-remediate-proof
         with:
           # Flat zip root: demo-report-after.html + sbom-after.cdx.json
           name: remediate-proof
           path: artifacts/bundle-after/
           if-no-files-found: warn
+
+      - name: Link artifacts in Job Summary
+        if: steps.upload-remediate-proof.outputs.artifact-url != ''
+        env:
+          ARTIFACT_URL: ${{ steps.upload-remediate-proof.outputs.artifact-url }}
+        run: |
+          {
+            echo ""
+            echo "## Download artifacts (no fishing)"
+            echo ""
+            echo "[**Download \`remediate-proof\` zip**](${ARTIFACT_URL}) — contains \`demo-report-after.html\` + \`sbom-after.cdx.json\` at the zip root."
+            echo ""
+            echo "Must be logged into GitHub. Unzip → open the HTML → upload the SBOM to [Lens](https://console.redhat.com/lightwell/lens)."
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"

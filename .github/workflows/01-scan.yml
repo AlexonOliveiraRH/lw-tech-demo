@@ -47,8 +47,23 @@ jobs:
       - name: Stage flat artifact bundle
         run: ./scripts/stage-artifact-bundle.sh before
       - uses: actions/upload-artifact@v4
+        id: upload-scan-before
         with:
           # Flat zip root: demo-report-before.html + sbom-before.cdx.json
           name: scan-before
           path: artifacts/bundle-before/
           if-no-files-found: warn
+      - name: Link artifacts in Job Summary
+        if: steps.upload-scan-before.outputs.artifact-url != ''
+        env:
+          ARTIFACT_URL: ${{ steps.upload-scan-before.outputs.artifact-url }}
+        run: |
+          {
+            echo ""
+            echo "## Download artifacts (no fishing)"
+            echo ""
+            echo "[**Download \`scan-before\` zip**](${ARTIFACT_URL}) — contains \`demo-report-before.html\` + \`sbom-before.cdx.json\` at the zip root."
+            echo ""
+            echo "Must be logged into GitHub. Unzip → open the HTML → upload the SBOM to [Lens](https://console.redhat.com/lightwell/lens)."
+            echo ""
+          } >> "$GITHUB_STEP_SUMMARY"

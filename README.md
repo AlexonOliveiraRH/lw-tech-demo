@@ -35,8 +35,8 @@ In **Actions** you may see four names. **Only use the numbered ones:**
 ### 1 — Scan (no Lightwell login)
 
 1. [Actions → **1 · Scan (vulnerable)**](https://github.com/dasmlab/lw-tech-demo/actions/workflows/01-scan.yml) → **Run workflow** (leave runner = `ubuntu-latest`)
-2. When the run is green, open it, scroll to the bottom, and **download the artifacts** (`scan-before`)
-3. Unzip — files are at the **zip root** (nothing to dig for):
+2. When the run is green, open **Summary** → click **Download `scan-before` zip** (or use Artifacts at the bottom)
+3. Unzip — files are at the **zip root**:
    - Open **`demo-report-before.html`** in a browser
    - Upload **`sbom-before.cdx.json`** to **Lightwell Lens**
 
@@ -51,7 +51,7 @@ In **Actions** you may see four names. **Only use the numbered ones:**
    - **lightwell_user** — `orgId|service-account-name` (shape: `11009103|dasmlwsvc`)
    - **lightwell_token** — service-account token from Lightwell Console
    - **runner** — leave `ubuntu-latest` unless you intentionally use self-hosted
-3. When the run is green, open it, scroll to the bottom, and **download the artifacts** (`remediate-proof`), then unzip
+3. When the run is green, open **Summary** → click **Download `remediate-proof` zip**, then unzip
 4. At the zip root: open **`demo-report-after.html`**, and upload **`sbom-after.cdx.json`** to **Lens** to see the difference
 
 **Notable**
