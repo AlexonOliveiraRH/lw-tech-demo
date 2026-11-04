@@ -4,7 +4,7 @@
 #   pipeline: scan-before | build | scan-after | test | scan-build | full | publish
 #   lightwell_user / lightwell_token: required for Lightwell stages unless repo secrets exist
 #
-# Forks / external demo runners: paste orgId|sa + token in the form.
+# Self-hosted runners (dasmlab). Forks: paste orgId|sa + token in the form.
 # Maintainers: set LIGHTWELL_PYPI_USER + LIGHTWELL_PYPI_TOKEN secrets and leave inputs blank.
 
 name: Lightwell Demo
@@ -97,17 +97,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install Poetry
-        run: pipx install poetry
-      - name: Install Trivy
-        run: |
-          mkdir -p "$HOME/.local/bin"
-          VER=0.76.1
-          curl -sL "https://github.com/aquasecurity/trivy/releases/download/v${VER}/trivy_${VER}_Linux-64bit.tar.gz" \
-            | tar -xz -C "$HOME/.local/bin" trivy
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          export PATH="$HOME/.local/bin:$PATH"
-          trivy --version
+      - name: Install Poetry + Trivy
+        run: WITH_TRIVY=true ./scripts/ci-install-tools.sh
       - name: Scan before (public vulnerable pin)
         env:
           USE_LIGHTWELL: "false"
@@ -145,7 +136,8 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install Poetry
-        run: pipx install poetry
+        working-directory: ${{ github.workspace }}
+        run: ./scripts/ci-install-tools.sh
       - name: Mask Lightwell token
         if: env.USE_LIGHTWELL == 'true'
         run: echo "::add-mask::${LIGHTWELL_PYPI_TOKEN}"
@@ -153,7 +145,6 @@ jobs:
         if: env.USE_LIGHTWELL == 'true'
         working-directory: ${{ github.workspace }}
         run: |
-          # Dual-feed path (not Artifactory virtual) unless PYPI_INDEX_URL secret points at Artifactory
           unset PYPI_INDEX_URL || true
           if [[ -n "${{ secrets.PYPI_INDEX_URL }}" ]]; then
             export PYPI_INDEX_URL="${{ secrets.PYPI_INDEX_URL }}"
@@ -194,17 +185,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install Poetry
-        run: pipx install poetry
-      - name: Install Trivy
-        run: |
-          mkdir -p "$HOME/.local/bin"
-          VER=0.76.1
-          curl -sL "https://github.com/aquasecurity/trivy/releases/download/v${VER}/trivy_${VER}_Linux-64bit.tar.gz" \
-            | tar -xz -C "$HOME/.local/bin" trivy
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          export PATH="$HOME/.local/bin:$PATH"
-          trivy --version
+      - name: Install Poetry + Trivy
+        run: WITH_TRIVY=true ./scripts/ci-install-tools.sh
       - name: Mask Lightwell token
         run: echo "::add-mask::${LIGHTWELL_PYPI_TOKEN}"
       - name: Scan after (Lightwell remediated)
@@ -238,17 +220,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install Poetry
-        run: pipx install poetry
-      - name: Install Trivy
-        run: |
-          mkdir -p "$HOME/.local/bin"
-          VER=0.76.1
-          curl -sL "https://github.com/aquasecurity/trivy/releases/download/v${VER}/trivy_${VER}_Linux-64bit.tar.gz" \
-            | tar -xz -C "$HOME/.local/bin" trivy
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          export PATH="$HOME/.local/bin:$PATH"
-          trivy --version
+      - name: Install Poetry + Trivy
+        run: WITH_TRIVY=true ./scripts/ci-install-tools.sh
       - name: Mask Lightwell token
         run: echo "::add-mask::${LIGHTWELL_PYPI_TOKEN}"
       - name: Configure Lightwell + generate SBOM

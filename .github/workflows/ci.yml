@@ -26,7 +26,8 @@ jobs:
           python-version: "3.12"
 
       - name: Install Poetry
-        run: pipx install poetry
+        working-directory: ${{ github.workspace }}
+        run: ./scripts/ci-install-tools.sh
 
       - name: Install dependencies (public PyPI)
         run: poetry install --no-interaction
