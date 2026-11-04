@@ -54,7 +54,7 @@ env:
 jobs:
   resolve-creds:
     name: Resolve credentials
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     outputs:
       need_lightwell: ${{ steps.decide.outputs.need_lightwell }}
     steps:
@@ -91,7 +91,7 @@ jobs:
     name: "1 · Scan before"
     needs: resolve-creds
     if: contains(fromJSON('["scan-before","scan-build","full"]'), inputs.pipeline)
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -128,7 +128,7 @@ jobs:
       needs.resolve-creds.result == 'success' &&
       contains(fromJSON('["build","test","scan-build","full","publish"]'), inputs.pipeline) &&
       (needs.scan-before.result == 'success' || needs.scan-before.result == 'skipped')
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     defaults:
       run:
         working-directory: apps/vulnerable-fastapi
@@ -186,7 +186,7 @@ jobs:
         needs.build.result == 'success' ||
         (inputs.pipeline == 'scan-after' && needs.build.result == 'skipped')
       )
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     env:
       USE_LIGHTWELL: "true"
     steps:
@@ -230,7 +230,7 @@ jobs:
       needs.resolve-creds.result == 'success' &&
       contains(fromJSON('["publish","full"]'), inputs.pipeline) &&
       needs.build.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted]
     env:
       USE_LIGHTWELL: "true"
     steps:
