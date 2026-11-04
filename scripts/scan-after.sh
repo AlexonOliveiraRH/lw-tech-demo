@@ -28,7 +28,7 @@ fi
   poetry install --no-interaction
   echo "==> remediated set versions"
   for pkg in sqlparse PyPDF2 tokenizers; do
-    poetry run python -c "import importlib.metadata as m; print(f'{pkg}={m.version(\"${pkg}\")}')"
+    poetry run python -c "import importlib.metadata as m; print('${pkg}=' + m.version('${pkg}'))"
   done
 )
 
