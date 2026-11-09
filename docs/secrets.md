@@ -4,33 +4,34 @@ Do **not** commit credentials. See [lightwell-feeds.md](lightwell-feeds.md) for 
 
 ## Primary demo path (self-service)
 
-Pick a row from the README **Table of Self-Service Demos**. Each demo is **one** workflow — choose **step = scan** or **step = remediate**.
+Use the numbered workflows only:
 
 | Workflow | Auth | Runner |
 |----------|------|--------|
-| **[Demo · Python · Trivy](../.github/workflows/demo-python-trivy.yml)** | Scan: none · Remediate: paste `lightwell_user` + `lightwell_token` | default `ubuntu-latest` (optional `self-hosted`) |
-| **[Demo · Java · Maven · Trivy](../.github/workflows/demo-java-maven-trivy.yml)** | Scan: none · Remediate: paste `lightwell_user` + `lightwell_token` | default `ubuntu-latest` (optional `self-hosted`) |
+| **[1 · Scan (vulnerable)](../.github/workflows/01-scan.yml)** | none | default `ubuntu-latest` (optional `self-hosted`) |
+| **[2 · Remediate (Lightwell)](../.github/workflows/02-remediate.yml)** | paste `lightwell_user` + `lightwell_token` per run | default `ubuntu-latest` (optional `self-hosted`) |
+| **[J1 · Java Scan (vulnerable)](../.github/workflows/java-1-scan.yml)** | none | default `ubuntu-latest` (optional `self-hosted`) |
+| **[J2 · Java Remediate (Lightwell)](../.github/workflows/java-2-remediate.yml)** | paste `lightwell_user` + `lightwell_token` per run | default `ubuntu-latest` (optional `self-hosted`) |
 
-Run titles include the GitHub actor (`@you`) and the step name. Lightwell usernames stay out of the run title.
+Run titles include the GitHub actor automatically (`@you`) and, for Remediate, the Lightwell username — no extra “who are you” field.
 
-| Input | When | Notes |
-|-------|------|-------|
-| `step` | always | `scan` or `remediate` |
-| `lightwell_user` | remediate | `orgId\|service-account-name` from console.redhat.com |
-| `lightwell_token` | remediate | Pasted per run; masked in logs via `::add-mask::` |
-| `runner` | always | `ubuntu-latest` (default) or `self-hosted` |
+| Input | Workflow | Notes |
+|-------|----------|-------|
+| `lightwell_user` | 2, J2 | `orgId\|service-account-name` from console.redhat.com |
+| `lightwell_token` | 2, J2 | Pasted per run; masked in logs via `::add-mask::` |
+| `runner` | all | `ubuntu-latest` (default) or `self-hosted` |
 
 > Workflow dispatch **inputs** (including the token) are visible to anyone who can see the Actions run metadata. Prefer short-lived tokens; rotate after the engagement if needed.
 
-**Fork path (recommended for most people):** fork this repo → enable Actions → run a **Demo · …** workflow on your fork with your Lightwell SA. No dasmlab secrets required.
+**Fork path (recommended for most people):** fork this repo → enable Actions → run **1** then **2** on your fork with your Lightwell SA. No dasmlab secrets required.
 
 ## Optional: advanced composite
 
-**Actions → `z · Advanced (composite)`** is for maintainers / power users (`scan-build`, `full`, etc.). It can fall back to repository secrets when inputs are blank. Prefer the **Demo · …** workflows for demos.
+**Actions → `z · Advanced (composite)`** is for maintainers / power users (`scan-build`, `full`, etc.). It can fall back to repository secrets when inputs are blank. Prefer **1** / **2** for demos.
 
 ## Repository secrets (optional, maintainers only)
 
-Used only by the advanced composite when inputs are left blank — **not** by the self-service demos.
+Used only by the advanced composite when inputs are left blank — **not** by sales steps 1 / 2.
 
 | Secret | Purpose |
 |--------|---------|
@@ -57,5 +58,3 @@ gh secret set LIGHTWELL_PYPI_TOKEN < /path/to/token --repo dasmlab/lw-tech-demo
 cp .env.example .env
 # scripts/load-lightwell-env.sh reads LIGHTWELL_TOKEN_FILE
 ```
-
-See [../integration/artifactory/SETUP.md](../integration/artifactory/SETUP.md) for the Artifactory sandbox path.

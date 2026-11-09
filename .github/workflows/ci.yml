@@ -1,5 +1,5 @@
 # Always-on CI: public PyPI / Maven Central paths only (no Lightwell token required).
-# Self-service demos live under Actions → Demo · … (ignore this workflow).
+# Demo stages with Lightwell live under Actions → "Lightwell Demo".
 
 name: "z · CI (maintainers)"
 

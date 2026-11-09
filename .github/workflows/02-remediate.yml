@@ -1,31 +1,20 @@
-# Self-service demo: Python (FastAPI/Poetry) + Trivy
-# One Actions entry — pick step: Scan (before) or Remediate (after).
-# Default runner: ubuntu-latest so forks / any entitled user can run.
+# Step 2 — paste Lightwell user + token for THIS RUN only (not stored in the repo).
+# Default runner: GitHub-hosted (ubuntu-latest) so forks / any entitled user can run.
 
-name: "Demo · Python · Trivy"
-run-name: "Demo · Python · Trivy · ${{ inputs.step }} — @${{ github.actor }}"
+name: "2 · Remediate (Lightwell)"
+run-name: "2 · Remediate — @${{ github.actor }} · ${{ inputs.lightwell_user }}"
 
 on:
   workflow_dispatch:
     inputs:
-      step:
-        description: "1 = Scan (vulnerable / before) · 2 = Remediate (Lightwell / after)"
-        type: choice
-        required: true
-        default: scan
-        options:
-          - scan
-          - remediate
       lightwell_user:
-        description: "Remediate only — Lightwell username (orgId|service-account-name), e.g. 11009103|dasmlwsvc"
+        description: "REQUIRED — Lightwell username (orgId|service-account-name), e.g. 11009103|dasmlwsvc"
         type: string
-        required: false
-        default: ""
+        required: true
       lightwell_token:
-        description: "Remediate only — Lightwell service-account token for this run only"
+        description: "REQUIRED — Lightwell service-account token for this run only"
         type: string
-        required: false
-        default: ""
+        required: true
       runner:
         description: "Runner (default GitHub-hosted for self-service; self-hosted optional for maintainers)"
         type: choice
@@ -38,92 +27,24 @@ on:
 permissions:
   contents: read
 
-jobs:
-  scan:
-    name: Scan vulnerable pins
-    if: inputs.step == 'scan'
-    runs-on: ${{ inputs.runner }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Install tools
-        run: WITH_TRIVY=true ./scripts/ci-install-tools.sh
-      - name: Scan before
-        env:
-          USE_LIGHTWELL: "false"
-        run: ./scripts/scan-before.sh
-      - name: SBOM (vulnerable) for Lightwell Lens
-        env:
-          USE_LIGHTWELL: "false"
-          SBOM_STAGE: before
-          SBOM_SKIP_INSTALL: "1"
-        run: ./scripts/sbom-generate.sh
-      - name: Visual demo report
-        working-directory: apps/vulnerable-fastapi
-        run: poetry run python ../../scripts/render-demo-report.py before
-      - name: Stage flat artifact bundle
-        run: ./scripts/stage-artifact-bundle.sh before
-      - uses: actions/upload-artifact@v4
-        id: upload-scan-before
-        with:
-          name: scan-before
-          path: artifacts/bundle-before/
-          if-no-files-found: warn
-      - name: Job Summary
-        env:
-          ARTIFACT_ID: ${{ steps.upload-scan-before.outputs.artifact-id }}
-          ARTIFACT_URL: ${{ steps.upload-scan-before.outputs.artifact-url }}
-        run: |
-          set -euo pipefail
-          if [[ -z "${ARTIFACT_URL:-}" && -n "${ARTIFACT_ID:-}" ]]; then
-            ARTIFACT_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_ID}"
-          fi
-          {
-            echo "## Download scan report and SBOM"
-            echo ""
-            if [[ -n "${ARTIFACT_URL:-}" ]]; then
-              echo "[**Download zip**](${ARTIFACT_URL})"
-              echo ""
-              echo "Zip root: \`demo-report-before.html\` + \`sbom-before.cdx.json\`"
-            else
-              echo "Open **Artifacts** → \`scan-before\` on this run."
-            fi
-            echo ""
-            echo "Unzip → open the HTML → upload the SBOM to [Lens](https://console.redhat.com/lightwell/lens)."
-            echo ""
-            echo "---"
-            echo ""
-            [[ -f artifacts/live/scan-before-summary.md ]] && cat artifacts/live/scan-before-summary.md && echo ""
-            [[ -f artifacts/live/demo-report-before.md ]] && cat artifacts/live/demo-report-before.md && echo ""
-          } >> "$GITHUB_STEP_SUMMARY"
-          echo "Summary OK artifact_url=${ARTIFACT_URL:-none} id=${ARTIFACT_ID:-none}"
+env:
+  LIGHTWELL_PYPI_USER: ${{ inputs.lightwell_user }}
+  LIGHTWELL_PYPI_TOKEN: ${{ inputs.lightwell_token }}
+  USE_LIGHTWELL: "true"
 
+jobs:
   remediate:
     name: Remediate via Lightwell Network
-    if: inputs.step == 'remediate'
     runs-on: ${{ inputs.runner }}
-    env:
-      LIGHTWELL_PYPI_USER: ${{ inputs.lightwell_user }}
-      LIGHTWELL_PYPI_TOKEN: ${{ inputs.lightwell_token }}
-      USE_LIGHTWELL: "true"
     steps:
-      - name: Require Lightwell credentials
-        run: |
-          set -euo pipefail
-          if [[ -z "${{ inputs.lightwell_user }}" || -z "${{ inputs.lightwell_token }}" ]]; then
-            echo "::error::Remediate requires lightwell_user and lightwell_token (paste from Lightwell Console)."
-            exit 1
-          fi
-          echo "::add-mask::${{ inputs.lightwell_user }}"
-          echo "::add-mask::${{ inputs.lightwell_token }}"
-
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Mask token
+        run: echo "::add-mask::${LIGHTWELL_PYPI_TOKEN}"
 
       - name: Install tools
         run: WITH_TRIVY=true ./scripts/ci-install-tools.sh
@@ -150,6 +71,7 @@ jobs:
             echo "| | |"
             echo "|--|--|"
             echo "| GitHub actor | \`@${{ github.actor }}\` |"
+            echo "| Lightwell user | \`${{ inputs.lightwell_user }}\` |"
             echo "| Runner | \`${{ inputs.runner }}\` |"
             echo ""
             echo "## Installed from Lightwell"
