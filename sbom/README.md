@@ -4,8 +4,8 @@ The demo flow produces **two** CycloneDX files:
 
 | Stage | Workflow | Artifact file | Observation |
 |-------|----------|---------------|-------------|
-| **Before** | `1 · Scan (vulnerable)` | `sbom-before.cdx.json` | Upload to Lens → hooks on public pins |
-| **After** | `2 · Remediate (Lightwell)` | `sbom-after.cdx.json` | Upload to Lens → `+rhlw.1` Lightwell Network inventory |
+| **Before** | `Demo · …` · step = `scan` | `sbom-before.cdx.json` | Upload to Lens → hooks on public pins |
+| **After** | `Demo · …` · step = `remediate` | `sbom-after.cdx.json` | Upload to Lens → Lightwell Network inventory (`+rhlw.1` / `*.rhlw-*`) |
 
 ## Generate locally
 
