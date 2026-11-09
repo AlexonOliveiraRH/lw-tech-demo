@@ -3,8 +3,8 @@
 **Time:** ~10–15 minutes  
 **You need:** browser + Lightwell service account (`orgId|name` + token) + Lens URL
 
-In Actions: run **only** `1 · Scan` then `2 · Remediate` (runner default `ubuntu-latest`). Ignore anything named `z · …`.  
-Run titles show `@github-user` (and Lightwell user on step 2). Fork + enable Actions works without dasmlab runners.
+In Actions: open a **Demo · …** workflow (e.g. **Demo · Python · Trivy**) and run **step = scan** then **step = remediate** (runner default `ubuntu-latest`). Ignore anything named `z · …`.  
+Run titles show `@github-user` and the step. Fork + enable Actions works without dasmlab runners.
 
 ---
 
@@ -16,7 +16,7 @@ https://github.com/dasmlab/lw-tech-demo → README **Steps**
 
 ## 1. Scan (vulnerable)
 
-Actions → **1 · Scan (vulnerable)** → Run workflow.
+Actions → **Demo · Python · Trivy** → Run workflow → **step = scan**.
 
 | Look at | Why |
 |---------|-----|
@@ -30,7 +30,7 @@ Actions → **1 · Scan (vulnerable)** → Run workflow.
 
 ## 2. Remediate (Lightwell)
 
-Actions → **2 · Remediate (Lightwell)** → Run workflow.
+Actions → **Demo · Python · Trivy** → Run workflow → **step = remediate**.
 
 - `lightwell_user` = `NNNNNNN|service-account-name`
 - `lightwell_token` = token for **this run only**
