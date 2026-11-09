@@ -1,13 +1,13 @@
 # Lightwell package feeds (four repos)
 
-Lightwell Console exposes **four** network repositories. This demo kit focuses on the **two Python** feeds; Java is listed for completeness when talking to Artifactory admins.
+Lightwell Console exposes **four** network repositories. The Python demo (workflows 1 and 2) uses the two Python feeds; the Java demo (workflows J1 and J2) uses the two Java feeds.
 
 | Console name | Role | Simple index (Poetry / pip / Pipenv) | Artifactory remote URL |
 |--------------|------|--------------------------------------|-------------------------|
 | **Python Remediated** | CVE-backported wheels/sdists (`+rhlw.N`), same public version + compatible API | `https://packages.redhat.com/lightwell/python/remediated/simple` | `https://packages.redhat.com/api/pulp-content/lightwell/python/remediated/` |
 | **Python Validated** | Broad RH-built/validated catalog (~2400+ packages) — enterprise index instead of raw PyPI | `https://packages.redhat.com/lightwell/python/validated/simple` | `https://packages.redhat.com/api/pulp-content/lightwell/python/validated/` |
-| Java Remediated | Same pattern for Maven/Java (out of scope for this Python demo) | _(Console → Java Remediated)_ | _(Console)_ |
-| Java Validated / Java | Validated Java catalog (out of scope) | _(Console)_ | _(Console)_ |
+| **Java Remediated** | CVE-backported Maven artifacts, versioned `X.Y.Z.rhlw-NNNNN` | _(Maven repository)_ | `https://packages.redhat.com/api/pulp-content/lightwell/java/remediated/` |
+| **Java Validated** | Red Hat validated Maven catalog | _(Maven repository)_ | `https://packages.redhat.com/api/pulp-content/lightwell/java/validated/` |
 
 ## Why both Python remotes matter
 
@@ -23,6 +23,10 @@ Developer / CI
 - **Remediated on top**: `sqlparse-0.5.5+rhlw.1` (and peers) — demo “CVE noise eliminated” beat without app rewrite.
 
 Current remediated Python set (verify live before the meeting): `sqlparse`, `PyPDF2`, `tokenizers`.
+
+## Java: why a Maven profile
+
+Maven versions are exact: `xstream 1.4.18` never resolves to `1.4.18.rhlw-00006` just because a new repository is added (PyPI accepts `0.5.5+rhlw.1` for `0.5.5`). The Java demo app keeps every remediated version in a property and a `lightwell` profile swaps those properties and adds both Java feeds - see [apps/vulnerable-spring/pom.xml](../apps/vulnerable-spring/pom.xml). Application code does not change.
 
 ## Auth (all feeds)
 

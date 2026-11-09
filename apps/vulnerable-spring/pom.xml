@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Acme Orders - Lightwell Java demo app.
+
+  Default build: public Maven Central at versions Lightwell has remediated (vulnerable).
+  `mvn -P lightwell ...`: same code, packages resolved from the Lightwell Network:
+    1) Java Remediated  -> X.Y.Z.rhlw-NNNNN builds for the remediated set below
+    2) Java Validated   -> Red Hat validated catalog for the rest
+    3) Maven Central    -> anything not in either feed (implicit, last)
+
+  Maven versions are exact (no "+local" suffix like PyPI), so the profile swaps each
+  remediated version property for its Lightwell build. Application code never changes.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.acme.demo</groupId>
+  <artifactId>vulnerable-spring</artifactId>
+  <version>0.1.0</version>
+  <name>Acme Orders (Lightwell Java demo)</name>
+
+  <properties>
+    <maven.compiler.release>17</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <!-- Lightwell Java Remediated set: intentional vulnerable public versions -->
+    <spring.version>5.3.18</spring.version>
+    <spring-boot.version>2.7.18</spring-boot.version>
+    <spring-security.version>5.7.11</spring-security.version>
+    <logback.version>1.2.11</logback.version>
+    <commons-beanutils.version>1.9.4</commons-beanutils.version>
+    <avro.version>1.11.0</avro.version>
+    <jackson-databind.version>2.13.4</jackson-databind.version>
+    <xstream.version>1.4.18</xstream.version>
+
+    <!-- Not remediated: kept aligned with jackson-databind -->
+    <jackson.version>2.13.4</jackson.version>
+    <junit.version>5.10.2</junit.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Transitive Spring modules follow the same version (public or Lightwell build). -->
+      <dependency><groupId>org.springframework</groupId><artifactId>spring-core</artifactId><version>${spring.version}</version></dependency>
+      <dependency><groupId>org.springframework</groupId><artifactId>spring-jcl</artifactId><version>${spring.version}</version></dependency>
+      <dependency><groupId>org.springframework</groupId><artifactId>spring-beans</artifactId><version>${spring.version}</version></dependency>
+      <dependency><groupId>org.springframework</groupId><artifactId>spring-context</artifactId><version>${spring.version}</version></dependency>
+      <dependency><groupId>org.springframework</groupId><artifactId>spring-aop</artifactId><version>${spring.version}</version></dependency>
+      <dependency><groupId>org.springframework</groupId><artifactId>spring-expression</artifactId><version>${spring.version}</version></dependency>
+      <dependency><groupId>org.springframework</groupId><artifactId>spring-web</artifactId><version>${spring.version}</version></dependency>
+      <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-crypto</artifactId><version>${spring-security.version}</version></dependency>
+      <dependency><groupId>ch.qos.logback</groupId><artifactId>logback-core</artifactId><version>${logback.version}</version></dependency>
+      <!-- Avro pulls jackson-core 2.12.x; keep the Jackson family on one line. -->
+      <dependency><groupId>com.fasterxml.jackson.core</groupId><artifactId>jackson-core</artifactId><version>${jackson.version}</version></dependency>
+      <dependency><groupId>com.fasterxml.jackson.core</groupId><artifactId>jackson-annotations</artifactId><version>${jackson.version}</version></dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot</artifactId><version>${spring-boot.version}</version></dependency>
+    <dependency><groupId>org.springframework</groupId><artifactId>spring-webmvc</artifactId><version>${spring.version}</version></dependency>
+    <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-core</artifactId><version>${spring-security.version}</version></dependency>
+    <dependency><groupId>ch.qos.logback</groupId><artifactId>logback-classic</artifactId><version>${logback.version}</version></dependency>
+    <dependency><groupId>commons-beanutils</groupId><artifactId>commons-beanutils</artifactId><version>${commons-beanutils.version}</version></dependency>
+    <dependency><groupId>org.apache.avro</groupId><artifactId>avro</artifactId><version>${avro.version}</version></dependency>
+    <dependency><groupId>com.fasterxml.jackson.core</groupId><artifactId>jackson-databind</artifactId><version>${jackson-databind.version}</version></dependency>
+    <dependency><groupId>com.thoughtworks.xstream</groupId><artifactId>xstream</artifactId><version>${xstream.version}</version></dependency>
+
+    <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>${junit.version}</version><scope>test</scope></dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.2.5</version>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>lightwell</id>
+      <properties>
+        <spring.version>5.3.18.rhlw-00010</spring.version>
+        <spring-boot.version>2.7.18.rhlw-00004</spring-boot.version>
+        <spring-security.version>5.7.11.rhlw-00006</spring-security.version>
+        <logback.version>1.2.11.rhlw-00001</logback.version>
+        <commons-beanutils.version>1.9.4.rhlw-00001</commons-beanutils.version>
+        <avro.version>1.11.0.rhlw-00002</avro.version>
+        <jackson-databind.version>2.13.4.rhlw-00027</jackson-databind.version>
+        <xstream.version>1.4.18.rhlw-00006</xstream.version>
+      </properties>
+      <!-- Credentials: server ids below, see .mvn/lightwell-settings.xml (env vars only). -->
+      <repositories>
+        <repository>
+          <id>lightwell-remediated</id>
+          <url>https://packages.redhat.com/api/pulp-content/lightwell/java/remediated/</url>
+          <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+        <repository>
+          <id>lightwell-validated</id>
+          <url>https://packages.redhat.com/api/pulp-content/lightwell/java/validated/</url>
+          <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+</project>

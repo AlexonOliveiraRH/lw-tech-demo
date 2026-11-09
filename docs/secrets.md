@@ -10,14 +10,16 @@ Use the numbered workflows only:
 |----------|------|--------|
 | **[1 · Scan (vulnerable)](../.github/workflows/01-scan.yml)** | none | default `ubuntu-latest` (optional `self-hosted`) |
 | **[2 · Remediate (Lightwell)](../.github/workflows/02-remediate.yml)** | paste `lightwell_user` + `lightwell_token` per run | default `ubuntu-latest` (optional `self-hosted`) |
+| **[J1 · Java Scan (vulnerable)](../.github/workflows/java-1-scan.yml)** | none | default `ubuntu-latest` (optional `self-hosted`) |
+| **[J2 · Java Remediate (Lightwell)](../.github/workflows/java-2-remediate.yml)** | paste `lightwell_user` + `lightwell_token` per run | default `ubuntu-latest` (optional `self-hosted`) |
 
 Run titles include the GitHub actor automatically (`@you`) and, for Remediate, the Lightwell username — no extra “who are you” field.
 
 | Input | Workflow | Notes |
 |-------|----------|-------|
-| `lightwell_user` | 2 | `orgId\|service-account-name` from console.redhat.com |
-| `lightwell_token` | 2 | Pasted per run; masked in logs via `::add-mask::` |
-| `runner` | 1 and 2 | `ubuntu-latest` (default) or `self-hosted` |
+| `lightwell_user` | 2, J2 | `orgId\|service-account-name` from console.redhat.com |
+| `lightwell_token` | 2, J2 | Pasted per run; masked in logs via `::add-mask::` |
+| `runner` | all | `ubuntu-latest` (default) or `self-hosted` |
 
 > Workflow dispatch **inputs** (including the token) are visible to anyone who can see the Actions run metadata. Prefer short-lived tokens; rotate after the engagement if needed.
 

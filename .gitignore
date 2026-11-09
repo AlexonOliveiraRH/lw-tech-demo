@@ -12,6 +12,9 @@ venv/
 .env.local
 *.egg
 
+# Maven (Java demo)
+apps/vulnerable-spring/target/
+
 # Poetry
 # Keep poetry.lock committed for reproducible demo pins
 
