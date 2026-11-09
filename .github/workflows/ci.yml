@@ -1,4 +1,4 @@
-# Always-on CI: public PyPI path only (no Lightwell token required).
+# Always-on CI: public PyPI / Maven Central paths only (no Lightwell token required).
 # Demo stages with Lightwell live under Actions → "Lightwell Demo".
 
 name: "z · CI (maintainers)"
@@ -37,3 +37,20 @@ jobs:
 
       - name: Pytest
         run: poetry run pytest -q
+
+  java-test:
+    name: Public Maven + JUnit (Java demo)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/vulnerable-spring
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Build + tests (public Maven Central)
+        run: mvn -B -ntp verify

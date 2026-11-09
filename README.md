@@ -17,14 +17,16 @@ You do **not** need dasmlab secrets or self-hosted runners. Run titles show `@yo
 
 ---
 
-## What you run (only two workflows)
+## What you run (two workflows per ecosystem)
 
-In **Actions** you may see four names. **Only use the numbered ones:**
+In **Actions** you may see several names. **Use the numbered ones** (`1`/`2` for Python, `J1`/`J2` for Java):
 
 | Workflow | Use? | What it does |
 |----------|------|----------------|
 | **1 · Scan (vulnerable)** | ✅ Step 1 | Public pins + scanners + **SBOM before** + visual report |
 | **2 · Remediate (Lightwell)** | ✅ Step 2 | Lightwell feeds → `+rhlw.1` + **SBOM after** + visual report |
+| **J1 · Java Scan (vulnerable)** | ✅ Java step 1 | Spring app on public Maven Central + Trivy + **SBOM before** + visual report |
+| **J2 · Java Remediate (Lightwell)** | ✅ Java step 2 | Lightwell Java feeds → `rhlw` builds + **SBOM after** + visual report |
 | `z · CI (maintainers)` | ❌ ignore | PR/push smoke test |
 | `z · Advanced (composite)` | ❌ ignore | Power-user pipeline |
 
@@ -74,6 +76,22 @@ In **Actions** you may see four names. **Only use the numbered ones:**
 | FastAPI / httpx / … | public | **Validated** |
 
 Console has four repos; this demo uses the **two Python** feeds. Details: [docs/lightwell-feeds.md](docs/lightwell-feeds.md)
+
+---
+
+## Java (Spring) variant
+
+Same three beats - break it, fix it, prove it - on a Spring app ([apps/vulnerable-spring](apps/vulnerable-spring/)). Lightwell has many more Java remediations than Python, so this run shows **17 libraries** swapped for Lightwell builds.
+
+1. [Actions → **J1 · Java Scan (vulnerable)**](https://github.com/dasmlab/lw-tech-demo/actions/workflows/java-1-scan.yml) → **Run workflow** → download the `java-scan-before` zip → open `demo-report-before.html`, upload `sbom-before.cdx.json` to **Lens**
+2. [Actions → **J2 · Java Remediate (Lightwell)**](https://github.com/dasmlab/lw-tech-demo/actions/workflows/java-2-remediate.yml) → same `lightwell_user` + `lightwell_token` as step 2 → download the `java-remediate-proof` zip → open `demo-report-after.html`, upload `sbom-after.cdx.json` to **Lens**
+
+**Notable**
+
+- Same code, same JUnit tests, same pipeline - only `mvn -P lightwell` changes the package source
+- Remediated set (Spring 5.3.18, Spring Boot 2.7.18, Spring Security 5.7.11, Logback 1.2.11, commons-beanutils 1.9.4, Avro 1.11.0, jackson-databind 2.13.4, XStream 1.4.18) resolves as `X.Y.Z.rhlw-NNNNN` from **Java Remediated**; the run fails if any of them does not
+- Other dependencies come from **Java Validated** when it has them, otherwise Maven Central - the report shows which repository served every jar
+- Lens on the before SBOM lists the CVEs with a Lightwell fix available; version-matching scanners (Trivy) keep reporting upstream CVE IDs on `rhlw` builds, so use Lens to compare before and after
 
 ---
 
