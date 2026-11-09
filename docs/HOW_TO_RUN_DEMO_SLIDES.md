@@ -39,7 +39,7 @@ Scan → change source provider → rebuild → prove it (report + Lens SBOM)
 
 | 1 · GitHub | 2 · Lightwell Console | 3 · Run the demo |
 |------------|------------------------|------------------|
-| Open the repo and sign in with your **GitHub** ID | Sign in to **console.redhat.com** → create/get Lightwell **service account** (`orgId\|name` + token) | Actions → pick a **Demo · …** → **scan** then **remediate** (2 runs for before / after) |
+| Open the repo and sign in with your **GitHub** ID | Sign in to **console.redhat.com** → create/get Lightwell **service account** (`orgId\|name` + token) | Actions → **1 · Scan** then **2 · Remediate** (2 clicks for before / after) |
 
 **Repo:** https://github.com/dasmlab/lw-tech-demo  
 
@@ -54,8 +54,7 @@ https://console.redhat.com/lightwell/lens
 
 **Title:** Step 1 — Scan (public sources)
 
-1. Actions → **Demo · Python · Trivy** → **step = scan** → Run  
-
+1. Actions → **1 · Scan (vulnerable)** → Run  
 2. Download `scan-before` → unzip (flat)  
 3. Open **`demo-report-before.html`**  
 4. Upload **`sbom-before.cdx.json`** to Lens  
@@ -82,8 +81,7 @@ https://console.redhat.com/lightwell/lens
 
 **Title:** Step 2 — Remediate (Lightwell sources)
 
-1. Actions → **Demo · Python · Trivy** → **step = remediate** → paste SA user + token → Run  
-
+1. Actions → **2 · Remediate (Lightwell)** → paste SA user + token → Run  
 2. Download `remediate-proof` → unzip  
 3. Open **`demo-report-after.html`**  
 4. Upload **`sbom-after.cdx.json`** to Lens  

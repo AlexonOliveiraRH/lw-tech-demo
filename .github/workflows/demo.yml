@@ -1,6 +1,6 @@
 # Lightwell Part 2 — click-to-run demo pipeline (GitHub Actions UI)
 #
-# Actions → z · Advanced (composite) → Run workflow (not a self-service demo)
+# Actions → z · Advanced (composite) → Run workflow (not the primary demo path)
 #   pipeline: scan-before | build | scan-after | test | scan-build | full | publish
 #   lightwell_user / lightwell_token: required for Lightwell stages unless repo secrets exist
 #
