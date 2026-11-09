@@ -2,19 +2,6 @@
 
 **Goal:** demonstrate ease of implementation with Lightwell and the before/after effects — **no application rewrite** — and prove it in **Lens**.
 
-Repo: [dasmlab/lw-tech-demo](https://github.com/dasmlab/lw-tech-demo)
-
----
-
-## Prerequisites
-
-1. **Lightwell entitlement** on [console.redhat.com](https://console.redhat.com)  
-2. Create a Lightwell **service account** → copy `orgId|name` + token  
-3. Know where **Lens** is for your tenant (Console → Lightwell → Lens)  
-4. Run workflows here **or fork** this repo and enable Actions (GitHub-hosted `ubuntu-latest` by default)
-
-You do **not** need dasmlab secrets or self-hosted runners. Run titles show `@your-github-user` automatically.
-
 ---
 
 ## Table of Self-Service Demos
@@ -27,6 +14,17 @@ All you need is your **Lightwell service account** (for the Remediate step). Eac
 | **Java (Maven) with Trivy** | [Demo · Java · Maven · Trivy](https://github.com/dasmlab/lw-tech-demo/actions/workflows/demo-java-maven-trivy.yml) | Spring/Maven app on Maven Central, then Lightwell Java feeds (`rhlw` builds). Same Trivy + SBOM before/after pattern. |
 | Python with JFrog / Xray | — | Planned — same before/after beats with Xray as the scanner surface. |
 | Java with SonarQube / Nexus | — | Planned — same before/after beats with Sonar + Nexus as the integration surface. |
+
+---
+
+## Prerequisites
+
+1. **Lightwell entitlement** on [console.redhat.com](https://console.redhat.com)  
+2. Create a Lightwell **service account** → copy `orgId|name` + token  
+3. Know where **Lens** is for your tenant (Console → Lightwell → Lens)  
+4. Run workflows here **or fork** this repo and enable Actions (GitHub-hosted `ubuntu-latest` by default)
+
+You do **not** need dasmlab secrets or self-hosted runners. Run titles show `@your-github-user` automatically.
 
 ---
 
