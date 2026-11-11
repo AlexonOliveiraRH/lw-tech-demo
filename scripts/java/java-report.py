@@ -92,8 +92,9 @@ def jar_source(jar: Path) -> str:
     marker = jar.parent / "_remote.repositories"
     if not marker.exists():
         return "unknown"
+    # Maven 3.10 records repository ids with a hash suffix (lightwell-remediated-<40 hex>).
     repos = [
-        line.split(">", 1)[1].rstrip("=")
+        re.sub(r"-[0-9a-f]{40}$", "", line.split(">", 1)[1].rstrip("="))
         for line in marker.read_text(encoding="utf-8").splitlines()
         if line.startswith(jar.name + ">")
     ]
