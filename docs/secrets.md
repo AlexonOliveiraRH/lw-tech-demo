@@ -13,7 +13,7 @@ Use the numbered workflows only:
 | **[J1 · Java Scan (vulnerable)](../.github/workflows/java-1-scan.yml)** | none | default `ubuntu-latest` (optional `self-hosted`) |
 | **[J2 · Java Remediate (Lightwell)](../.github/workflows/java-2-remediate.yml)** | paste `lightwell_user` + `lightwell_token` per run | default `ubuntu-latest` (optional `self-hosted`) |
 
-Run titles include the GitHub actor automatically (`@you`) and, for Remediate, the Lightwell username — no extra “who are you” field.
+Run titles include the GitHub actor automatically (`@you`) and, for Python Remediate (`2`), the Lightwell username — no extra “who are you” field.
 
 | Input | Workflow | Notes |
 |-------|----------|-------|
