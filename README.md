@@ -1,8 +1,21 @@
-# Lightwell Python Focused Technical Demo
+# Lightwell Technical Demo - Python and Java
 
 **Goal:** demonstrate ease of implementation with Lightwell and the before/after effects — **no application rewrite** — and prove it in **Lens**.
 
 Repo: [dasmlab/lw-tech-demo](https://github.com/dasmlab/lw-tech-demo)
+
+---
+
+## Start here - pick your ecosystem
+
+**A** · pick a row · **B** · click Step 1 (BEFORE) → **Run workflow** · **C** · click Step 2 (AFTER) → **Run workflow** with your Lightwell service account
+
+| A · Ecosystem | B · Step 1 - BEFORE | C · Step 2 - AFTER | What changes for Lightwell | Slides |
+|---------------|---------------------|--------------------|----------------------------|--------|
+| Python (FastAPI, pip) | [1 · Scan (vulnerable)](https://github.com/dasmlab/lw-tech-demo/actions/workflows/01-scan.yml) | [2 · Remediate (Lightwell)](https://github.com/dasmlab/lw-tech-demo/actions/workflows/02-remediate.yml) | Package source only | [6-slide outline](docs/HOW_TO_RUN_DEMO_SLIDES.md) |
+| Java (Spring, Maven) | [J1 · Java Scan (vulnerable)](https://github.com/dasmlab/lw-tech-demo/actions/workflows/java-1-scan.yml) | [J2 · Java Remediate (Lightwell)](https://github.com/dasmlab/lw-tech-demo/actions/workflows/java-2-remediate.yml) | Maven profile `lightwell` in `pom.xml`; Java code unchanged | [6-slide outline](docs/HOW_TO_RUN_JAVA_DEMO_SLIDES.md) |
+
+Each run ends with a zip: open the HTML report, upload the SBOM to Lens. Details per ecosystem below.
 
 ---
 
@@ -13,7 +26,7 @@ Repo: [dasmlab/lw-tech-demo](https://github.com/dasmlab/lw-tech-demo)
 3. Know where **Lens** is for your tenant (Console → Lightwell → Lens)  
 4. Run workflows here **or fork** this repo and enable Actions (GitHub-hosted `ubuntu-latest` by default)
 
-You do **not** need dasmlab secrets or self-hosted runners. Run titles show `@your-github-user` automatically (Remediate also shows the Lightwell username).
+You do **not** need dasmlab secrets or self-hosted runners. Run titles show `@your-github-user` automatically (Python Remediate also shows the Lightwell username).
 
 ---
 
@@ -101,6 +114,7 @@ Same three beats - break it, fix it, prove it - on a Spring app ([apps/vulnerabl
 |------|------|
 | [DEMO_RUNBOOK.md](DEMO_RUNBOOK.md) | Fuller step-by-step |
 | [docs/HOW_TO_RUN_DEMO_SLIDES.md](docs/HOW_TO_RUN_DEMO_SLIDES.md) | 6-slide “how to run” outline |
+| [docs/HOW_TO_RUN_JAVA_DEMO_SLIDES.md](docs/HOW_TO_RUN_JAVA_DEMO_SLIDES.md) | Java 6-slide “how to run” outline |
 | [docs/secrets.md](docs/secrets.md) | Auth / runner / fork notes |
 | [sbom/README.md](sbom/README.md) | Lens upload notes |
 | [integration/artifactory](integration/artifactory/) | Local Artifactory sandbox |
